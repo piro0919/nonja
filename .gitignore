@@ -1,0 +1,5 @@
+build/
+Nonja.app/
+dist/
+.DS_Store
+.playwright-mcp/
