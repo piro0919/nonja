@@ -50,6 +50,7 @@ the Notification Center database.
 | `Sources/RulesWindow.swift` | Settings: rules, confirm basis, launch at login |
 | `Sources/Mark.swift` | Draws the menu bar mark, filled or outlined |
 | `Sources/State.swift` | What has been dealt with, stored as JSON |
+| `Sources/Updater.swift` | Sparkle. Checks once at launch, speaks only when there is an update |
 | `Sources/SelfTest.swift` | Checks the rules without touching the screen |
 
 ## Building and checking
@@ -61,6 +62,9 @@ the Notification Center database.
 ./Nonja.app/Contents/MacOS/Nonja --press UUID # jump to an app
 ./Nonja.app/Contents/MacOS/Nonja --login on   # register at login
 ```
+
+`./release.sh <version>` builds, runs the self test, packages a DMG and a zip,
+signs the appcast, and pushes a GitHub release.
 
 Development builds are signed with a self-signed certificate. Ad-hoc signing
 changes identity on every build, and macOS drops both permissions each time.

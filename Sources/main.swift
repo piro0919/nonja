@@ -82,6 +82,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
         refresh()
+        // 更新の確認は起動時に1回だけ。見つかったときだけ画面を出す
+        Updater.shared.checkQuietly()
         // 通知の到着はデータベースへの反映まで約5秒遅れる。細かく見に行っても意味が無い
         timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             self?.refresh()
@@ -130,6 +132,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .target = self
         menu.addItem(withTitle: "通知のバナーを止める…", action: #selector(openNotificationSettings),
                      keyEquivalent: "").target = self
+        menu.addItem(withTitle: "更新を確認…", action: #selector(checkForUpdates), keyEquivalent: "")
+            .target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Nonja を終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
@@ -138,6 +142,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func refreshNow() { refresh() }
+
+    @objc private func checkForUpdates() { Updater.shared.checkNow() }
 
     @objc private func markAllRead() {
         listWindow.markAllRead()

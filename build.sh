@@ -17,9 +17,25 @@ if ! security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
 fi
 # リリース時は release.sh から渡される。手元のビルドでは 0.0.0 のままでよい
 VERSION="${NONJA_VERSION:-0.0.0}"
+SPARKLE_VERSION="2.9.5"
+
+# 自動更新に Sparkle を使う。framework は大きいのでリポジトリに置かず、
+# 無ければ取ってくる（Vendor/ は git の管理外）
+if [ ! -d "Vendor/Sparkle.framework" ]; then
+  echo "Sparkle $SPARKLE_VERSION を取得します…"
+  mkdir -p Vendor
+  TMP="$(mktemp -d)"
+  curl -sL -o "$TMP/sparkle.tar.xz" \
+    "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+  tar xf "$TMP/sparkle.tar.xz" -C "$TMP"
+  cp -R "$TMP/Sparkle.framework" Vendor/
+  cp -R "$TMP/bin" Vendor/
+  rm -rf "$TMP"
+fi
 
 rm -rf "$APP" build
-mkdir -p "$APP/Contents/MacOS"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks"
+cp -R Vendor/Sparkle.framework "$APP/Contents/Frameworks/"
 
 swiftc \
   -parse-as-library \
@@ -28,10 +44,13 @@ swiftc \
   -framework AppKit \
   -framework ApplicationServices \
   -framework ServiceManagement \
+  -F Vendor \
+  -framework Sparkle \
+  -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
   -o "$APP/Contents/MacOS/Nonja" \
   Sources/Paths.swift Sources/Notification.swift Sources/Store.swift \
   Sources/Mark.swift Sources/Login.swift Sources/Rules.swift Sources/State.swift Sources/Engine.swift Sources/SelfTest.swift \
-  Sources/Opener.swift Sources/ListWindow.swift Sources/RulesWindow.swift Sources/main.swift
+  Sources/Updater.swift Sources/Opener.swift Sources/ListWindow.swift Sources/RulesWindow.swift Sources/main.swift
 
 # アイコンの下ごしらえ。元絵には手を入れず、build/ に加工したものを作る
 mkdir -p build "$APP/Contents/Resources"
@@ -70,12 +89,33 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
   <!-- 通知センターを開いて本物の通知を押すために System Events を操作する -->
+
+  <!-- 自動更新（Sparkle）。確認は起動時に1回だけ行い、見つかったときだけ画面を出す。
+       この2つを false にしておかないと、初回起動で「自動で確認していいか」を尋ねる画面が出る -->
+  <key>SUFeedURL</key><string>https://github.com/piro0919/nonja/releases/latest/download/appcast.xml</string>
+  <!-- 更新の署名を確かめる公開鍵。対になる秘密鍵はログインキーチェーンにあり、
+       これを失うと更新を配れなくなる。Gocci・Konechi と同じ鍵 -->
+  <key>SUPublicEDKey</key><string>qYQq1iewXYNDhhkJJak1nXUXmFkZ0jAF6Gr+pjB4Bxo=</string>
+  <key>SUEnableAutomaticChecks</key><false/>
+  <key>SUAutomaticallyUpdate</key><false/>
+
   <key>NSAppleEventsUsageDescription</key>
   <string>通知をクリックしたときに、元のアプリへ移動するため通知センターを操作します。</string>
 </dict>
 </plist>
 PLIST
 
+# 同梱した framework は中から署名する。先にアプリを署名すると、
+# 後から中身が変わって壊れる
+for xpc in Downloader Installer; do
+  codesign --force --sign "$SIGN_IDENTITY" \
+    "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/XPCServices/${xpc}.xpc" 2>/dev/null || true
+done
+codesign --force --sign "$SIGN_IDENTITY" \
+  "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate" 2>/dev/null || true
+codesign --force --sign "$SIGN_IDENTITY" \
+  "$APP/Contents/Frameworks/Sparkle.framework/Versions/B/Updater.app" 2>/dev/null || true
+codesign --force --sign "$SIGN_IDENTITY" "$APP/Contents/Frameworks/Sparkle.framework"
 codesign --force --sign "$SIGN_IDENTITY" "$APP"
 
 echo "できました: $(pwd)/${APP} — 署名 ${SIGN_IDENTITY}"
