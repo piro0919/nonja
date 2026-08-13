@@ -14,6 +14,19 @@ real notification would have taken you.
 macOS 14+. No Xcode needed: `./build.sh` compiles with the Swift that ships with
 the Command Line Tools.
 
+## Installing
+
+Download the DMG from [Releases](https://github.com/piro0919/nonja/releases/latest)
+and drag Nonja into Applications.
+
+The first launch will be blocked: Nonja is signed with a self-signed certificate,
+not an Apple Developer ID, so macOS cannot verify who made it. To let it through,
+open **System Settings → Privacy & Security**, scroll to the bottom, and click
+**Open Anyway** next to the message about Nonja. You only do this once.
+
+Control-clicking the app and choosing Open no longer works — Apple removed that
+route in macOS Sequoia. System Settings is the way now.
+
 ## What it does
 
 - **Reads notifications in the background.** No banner, no popup, nothing on screen
