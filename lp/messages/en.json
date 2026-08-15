@@ -60,8 +60,7 @@
     "points": [
       "It only reads. Nothing is written, and the original notification stays in Notification Center",
       "Full Disk Access is required. Accessibility is required as well, to follow a notification to its app",
-      "If a permission is revoked or an update moves the store, it says so on screen rather than going quiet",
-      "Built this way, it carries a standing risk that a macOS update breaks it"
+      "The store is undocumented, so an update can move it out of reach. If that happens it says so on screen rather than quietly showing you an empty list"
     ]
   },
   "install": {
