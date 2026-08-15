@@ -83,6 +83,10 @@ final class ListWindowController: NSWindowController {
     private var rows: [Row] = []
     /// 中身が変わったらメニューバーの数も直したい
     var onChange: (() -> Void)?
+    /// 新しく届いたときだけ呼ぶ。起動直後の読み込みでは呼ばない
+    var onArrival: (() -> Void)?
+    /// 一度でも受信箱に載せたもの。届いたかどうかの判定に使う
+    private var seen: Set<String>?
     /// 設定を開く。右クリックの menu だけだと見つけられない
     var onOpenSettings: (() -> Void)?
 
@@ -217,9 +221,21 @@ final class ListWindowController: NSWindowController {
             inbox = []
             failure = "\(error)"
         }
+        noticeArrivals()
         rebuildRows()
         updateStatus(error: failure)
         return unreadCount
+    }
+
+    /// 前回まで無かったものが載ったら、届いたとみなす。
+    ///
+    /// **起動直後の一回目は数えない。** 溜まっていた分が全部「届いた」ことになり、
+    /// 立ち上げるたびに印が回ってしまう
+    private func noticeArrivals() {
+        let now = Set(inbox.map(\.uuid))
+        defer { seen = now }
+        guard let seen else { return }
+        if !now.subtracting(seen).isEmpty { onArrival?() }
     }
 
     private func rebuildRows() {
