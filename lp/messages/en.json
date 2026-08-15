@@ -4,18 +4,20 @@
     "description": "No banners. Notifications collect quietly in the background, and you read them when you decide to. A menu bar app for macOS."
   },
   "hero": {
-    "title": "Notifications can wait until you look",
-    "tagline": "Banners interrupt. Notification Center pours everything into one stream with no sense of read or unread and no way to deal with a batch. Nonja gives you somewhere else to look, and only when you ask.",
+    "title": "A quiet inbox for macOS notifications",
+    "tagline": "No banners. Notifications collect in the background, and you see them — grouped by app — only when you open the menu bar.",
     "download": "Download",
     "source": "View source",
-    "note": "Free and open source. Apple Silicon"
+    "note": "Free and open source. For Apple Silicon Macs.",
+    "firstRun": "The first launch needs one approval in System Settings",
+    "firstRunLink": "How"
   },
   "features": {
     "title": "What Nonja does",
     "items": [
       {
         "title": "Collects quietly",
-        "body": "Turn banners off in System Settings. Notifications still arrive in Notification Center, Nonja reads them from there and builds a list. Nothing appears on screen."
+        "body": "Turn banners off in System Settings and notifications still arrive in Notification Center. Nonja reads them from there and builds a list. Nothing appears over your work."
       },
       {
         "title": "Groups by app",
@@ -23,36 +25,22 @@
       },
       {
         "title": "Takes you to the source",
-        "body": "Clicking a row presses the real notification, so you land wherever that app meant to take you — not just at its front door."
+        "body": "Clicking a row does what pressing the real notification does, opening the exact screen it points at."
       },
       {
-        "title": "Shows no numbers",
-        "body": "No badge count in the menu bar. A filled mark means something is waiting, an outline means nothing is. When something arrives, the shuriken turns once."
+        "title": "Tells you only whether",
+        "body": "A filled mark means something is waiting, an outline means nothing is. No count, so there is no number climbing at the edge of your vision."
       }
-    ]
+    ],
+    "marks": {
+      "filled": "Something waiting",
+      "empty": "Nothing waiting"
+    }
   },
   "screens": {
-    "list": "The inbox, bundled by app"
-  },
-  "install": {
-    "title": "Installing",
-    "steps": [
-      {
-        "title": "Download the DMG",
-        "body": "Take the latest DMG from GitHub Releases and drag Nonja into your Applications folder."
-      },
-      {
-        "title": "Allow it once",
-        "body": "The first launch is blocked, because Nonja is self-signed. Open System Settings → Privacy & Security, scroll to the bottom, and click Open Anyway. Only the once."
-      },
-      {
-        "title": "Grant the permissions",
-        "body": "Allow Full Disk Access and Accessibility. Then turn banners off in System Settings, which is what makes the whole thing worth having."
-      }
-    ]
+    "list": "The mark in the menu bar, with the inbox open beneath it"
   },
   "footer": {
-    "built": "Nonja is a tool built by one person. Notification + Ninja.",
     "source": "See it on GitHub"
   },
   "language": {

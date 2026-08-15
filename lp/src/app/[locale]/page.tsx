@@ -15,7 +15,6 @@ export default async function Page({ params }: PageProps) {
 
   const t = await getTranslations();
   const features = t.raw("features.items") as Item[];
-  const steps = t.raw("install.steps") as Item[];
 
   return (
     <>
@@ -50,6 +49,16 @@ export default async function Page({ params }: PageProps) {
             </a>
           </div>
           <p className="mt-4 text-sm text-white/60">{t("hero.note")}</p>
+          {/* 節ごと落としたが、これを知らずに落とすと最初の起動で詰まる */}
+          <p className="mt-2 text-sm text-white/60">
+            {t("hero.firstRun")}
+            <a
+              className="ml-2 underline underline-offset-2 transition hover:text-white"
+              href={`${REPO}#installing`}
+            >
+              {t("hero.firstRunLink")}
+            </a>
+          </p>
         </div>
 
         {/* メニューバーの印と、その真下に開く窓。位置の関係ごと見せる */}
@@ -68,42 +77,34 @@ export default async function Page({ params }: PageProps) {
       {/* することは4つ。枠で囲まず、赤い罫だけで区切る */}
       <section className="px-6 py-20">
         <div className="mx-auto grid max-w-5xl gap-x-12 gap-y-10 sm:grid-cols-2">
-          {features.map((item) => (
+          {features.map((item, index) => (
             <div className="border-signal border-l-2 pl-5" key={item.title}>
               <h2 className="font-bold text-xl">{item.title}</h2>
               <p className="mt-3 text-ink/70 leading-relaxed">{item.body}</p>
+              {/* 印の話は、二つ並べたほうが文章より早い。アプリと同じコードで描いた絵 */}
+              {index === 3 ? (
+                <div className="mt-5 flex items-center gap-8">
+                  {(["filled", "empty"] as const).map((state) => (
+                    <div className="flex items-center gap-2.5" key={state}>
+                      <Image
+                        alt=""
+                        className="size-6"
+                        height={96}
+                        src={`/mark-${state}.png`}
+                        width={96}
+                      />
+                      <span className="text-ink/60 text-sm">{t(`features.marks.${state}`)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
       </section>
 
-      {/* 入れ方。自己署名なので初回だけ手間がかかる。隠さずに書く */}
-      <div className="dot-bg">
-        <section className="px-6 py-20" id="install">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="font-bold text-3xl tracking-tight sm:text-4xl">{t("install.title")}</h2>
-            <ol className="mt-10 grid gap-5 sm:grid-cols-3">
-              {steps.map((step, index) => (
-                <li className="rounded-2xl border border-line bg-white p-6" key={step.title}>
-                  <span className="font-bold text-signal text-sm">{index + 1}</span>
-                  <h3 className="mt-2 font-bold text-lg">{step.title}</h3>
-                  <p className="mt-3 text-ink/70 leading-relaxed">{step.body}</p>
-                </li>
-              ))}
-            </ol>
-            <a
-              className="mt-10 inline-block rounded-full bg-navy-deep px-8 py-3.5 font-bold text-white transition hover:opacity-90"
-              href={DOWNLOAD}
-            >
-              {t("hero.download")}
-            </a>
-          </div>
-        </section>
-      </div>
-
       <footer className="border-line border-t px-6 py-10 text-center text-ink/60 text-sm">
-        <p>{t("footer.built")}</p>
-        <a className="mt-2 inline-block underline" href={REPO}>
+        <a className="underline" href={REPO}>
           {t("footer.source")}
         </a>
       </footer>
