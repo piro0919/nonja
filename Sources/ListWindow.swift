@@ -59,11 +59,10 @@ final class ListWindowController: NSWindowController {
     }
 
     private let table = KeyTableView()
-    private let search = NSSearchField()
     private let status = NSTextField(labelWithString: "")
-    /// 状態表示は平常時に文字を持たない。畳めるよう、関わる制約を持っておく
     /// 測った行の高さ。鍵は uuid と幅
     private var heights: [String: CGFloat] = [:]
+    /// 状態表示は平常時に文字を持たない。畳めるよう、関わる制約を持っておく
     private var statusHeight: NSLayoutConstraint!
     private var statusGap: NSLayoutConstraint!
     private var statusBottom: NSLayoutConstraint!
@@ -120,12 +119,6 @@ final class ListWindowController: NSWindowController {
         window.isMovableByWindowBackground = true
         window.backgroundColor = .clear
 
-        search.placeholderString = "絞り込む"
-        search.target = self
-        search.action = #selector(searchChanged)
-        search.sendsSearchStringImmediately = true
-        search.translatesAutoresizingMaskIntoConstraints = false
-
         status.font = .systemFont(ofSize: 11)
         status.textColor = .secondaryLabelColor
         status.lineBreakMode = .byWordWrapping
@@ -171,7 +164,6 @@ final class ListWindowController: NSWindowController {
         gear.contentTintColor = .secondaryLabelColor
         gear.translatesAutoresizingMaskIntoConstraints = false
 
-        content.addSubview(search)
         content.addSubview(gear)
         content.addSubview(scroll)
         content.addSubview(status)
@@ -179,13 +171,11 @@ final class ListWindowController: NSWindowController {
         statusBottom = status.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -10)
         statusHeight = status.heightAnchor.constraint(equalToConstant: 0)
         NSLayoutConstraint.activate([
-            search.topAnchor.constraint(equalTo: content.topAnchor, constant: 38),
-            search.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 14),
-            search.trailingAnchor.constraint(equalTo: gear.leadingAnchor, constant: -8),
-            gear.centerYAnchor.constraint(equalTo: search.centerYAnchor),
+            // 窓の上端は掴んで動かすための帯なので、そのぶん空けて歯車だけを置く
+            gear.topAnchor.constraint(equalTo: content.topAnchor, constant: 14),
             gear.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -14),
             gear.widthAnchor.constraint(equalToConstant: 22),
-            scroll.topAnchor.constraint(equalTo: search.bottomAnchor, constant: 6),
+            scroll.topAnchor.constraint(equalTo: gear.bottomAnchor, constant: 8),
             scroll.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             statusGap,
@@ -222,15 +212,9 @@ final class ListWindowController: NSWindowController {
     }
 
     private func rebuildRows() {
-        let needle = search.stringValue.trimmingCharacters(in: .whitespaces).lowercased()
-        func hit(_ app: String, _ text: String) -> Bool {
-            needle.isEmpty || app.lowercased().contains(needle) || text.lowercased().contains(needle)
-        }
-
         rows = []
-        let visible = inbox.filter { hit($0.appName, $0.oneLine) }
         // アプリごとにまとめ、束の並びはその束の最新の時刻で決める
-        let groups = Dictionary(grouping: visible, by: \.bundleID)
+        let groups = Dictionary(grouping: inbox, by: \.bundleID)
         let ordered = groups.sorted {
             ($0.value.first?.deliveredAt ?? .distantPast) > ($1.value.first?.deliveredAt ?? .distantPast)
         }
@@ -269,10 +253,6 @@ final class ListWindowController: NSWindowController {
     // MARK: - 操作
 
     @objc private func openSettings() { onOpenSettings?() }
-
-    @objc private func searchChanged() {
-        rebuildRows()
-    }
 
     func keyDownInTable(_ event: NSEvent) -> Bool {
         switch event.keyCode {
@@ -364,8 +344,8 @@ final class ListWindowController: NSWindowController {
 
     // MARK: - 束ごとの操作
 
-    /// そのアプリを出さなくする。仕組みは振り分けルールの「自動で既読」
-    /// （SPEC.md「アプリ単位で止める」）。戻すのは設定から
+    /// そのアプリを一覧に出さなくする。仕組みは振り分けルールの「自動で既読」
+    /// （SPEC.md「アプリ単位で表示しない」）。戻すのは設定から
     @objc private func muteGroup(_ sender: NSButton) {
         guard let bundleID = sender.identifier?.rawValue else { return }
         state.settings.rules.removeAll { $0.bundleID == bundleID }
@@ -421,8 +401,9 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             // 行のボタンと同じ言葉にしない。どちらが一件でどちらが全部か読めなくなる
             let readAll = smallButton("すべて既読", #selector(readGroup(_:)), bundleID)
 
-            // 止めるのは滅多に押さない操作なので、指を乗せた見出しにだけ出す
-            let mute = smallButton("止める", #selector(muteGroup(_:)), bundleID)
+            // 滅多に押さない操作なので、指を乗せた見出しにだけ出す。
+            // 「止める」では何が止まるのか伝わらないので、起きることをそのまま書く
+            let mute = smallButton("表示しない", #selector(muteGroup(_:)), bundleID)
             mute.alphaValue = 0
 
             let stack = HoverRevealView(views: [label, spacer, mute, readAll])
