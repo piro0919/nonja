@@ -35,16 +35,21 @@ enum Opener {
 
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
         openNotificationCenter()
+        // **押せても閉じる。** 押した側の枝で閉じ忘れていて、遷移のたびに
+        // 通知センターが開きっぱなしになっていた。一瞬の明滅では済んでいなかった
+        defer { closeNotificationCenter() }
 
         // 開くまでに間があるので少し待って探す
         for _ in 0..<40 {
             if let target = find(uuid: uuid, in: axApp) {
                 AXUIElementPerformAction(target, kAXPressAction as CFString)
+                // 押した直後に閉じにいくと早すぎて効かない。
+                // 表示が動いている最中の操作は飲み込まれ、開いたまま残る
+                Thread.sleep(forTimeInterval: 0.4)
                 return true
             }
             Thread.sleep(forTimeInterval: 0.05)
         }
-        closeNotificationCenter()
         return false
     }
 
@@ -119,8 +124,15 @@ enum Opener {
             """)
     }
 
+    /// 閉じるのも時計を押す。
+    ///
+    /// **Escape では閉じない。** 押した直後は前面が元アプリへ移っているので、
+    /// Escape はそちらへ流れる。時計はどこが前面でも同じように効く
     private static func closeNotificationCenter() {
-        run("tell application \"System Events\" to key code 53")
+        run("""
+            tell application "System Events" to tell process "ControlCenter" \
+            to click (first menu bar item of menu bar 1 whose description is "時計")
+            """)
     }
 
     private static func run(_ source: String) {
