@@ -1,6 +1,6 @@
 import AppKit
 
-/// 設定画面。**ログイン時の起動と、止めているアプリだけ**（SPEC.md「設定画面に出すもの」）。
+/// 設定画面。**ログイン時の起動と、表示しないアプリだけ**（SPEC.md「設定画面に出すもの」）。
 ///
 /// 振り分けルールと確認の基準そのものは `state.json` に書けば効く。
 /// 画面から編集する口は持たない。ここに出すのは、一覧の中に戻す場所を作れないものだけ。
@@ -8,9 +8,9 @@ final class SettingsWindowController: NSWindowController {
 
     private let state: State
     private let login = NSButton()
-    /// 止めているアプリの並び。空のときは見出しごと出さない
+    /// 表示しないアプリの並び。空のときは見出しごと出さない
     private let muted = NSStackView()
-    private let mutedTitle = NSTextField(labelWithString: "止めているアプリ")
+    private let mutedTitle = NSTextField(labelWithString: "表示しないアプリ")
 
     init(state: State) {
         self.state = state
@@ -84,21 +84,21 @@ final class SettingsWindowController: NSWindowController {
             .compactMap(\.bundleID)
             .sorted()
         for bundleID in stopped { muted.addArrangedSubview(row(for: bundleID)) }
-        // 何も止めていなければ、見出しごと畳んで存在しなかったことにする
+        // 何も無ければ、見出しごと畳んで存在しなかったことにする
         mutedTitle.isHidden = stopped.isEmpty
         muted.isHidden = stopped.isEmpty
 
         fitToContent()
     }
 
-    /// 1行ぶん。名前と、戻すためのボタン
+    /// 1行ぶん。名前と、表示に戻すためのボタン
     private func row(for bundleID: String) -> NSView {
         let name = NSTextField(labelWithString: AppNames.displayName(for: bundleID))
         name.font = .systemFont(ofSize: 12)
         name.lineBreakMode = .byTruncatingTail
         name.widthAnchor.constraint(equalToConstant: 170).isActive = true
 
-        let restore = NSButton(title: "戻す", target: self, action: #selector(restore(_:)))
+        let restore = NSButton(title: "表示する", target: self, action: #selector(restore(_:)))
         restore.bezelStyle = .rounded
         restore.identifier = .init(bundleID)
 
