@@ -41,7 +41,7 @@ route in macOS Sequoia. System Settings is the way now.
   only removes it from this inbox; the original stays in Notification Center.
   Rules live in `~/Library/Application Support/Nonja/state.json`; the settings window
   is only the launch-at-login switch for now.
-- **Shows no numbers.** A bell that is filled means something is waiting. That is the
+- **Shows no numbers.** A filled shuriken means something is waiting. That is the
   whole status display. Whether it is five or five hundred does not change what you
   are going to do about it.
 
