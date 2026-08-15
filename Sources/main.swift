@@ -64,13 +64,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
     private var listWindow: ListWindowController!
-    private var rulesWindow: RulesWindowController!
+    private var settingsWindow: SettingsWindowController!
     private let state = State.load()
     private var timer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         listWindow = ListWindowController(state: state)
-        rulesWindow = RulesWindowController(state: state)
+        settingsWindow = SettingsWindowController()
         listWindow.onOpenSettings = { [weak self] in self?.showSettings() }
         // 窓の中で片付けたら、メニューバーの数も合わせる
         listWindow.onChange = { [weak self] in self?.showPresence() }
@@ -158,9 +158,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showSettings() {
-        rulesWindow.refresh()
+        settingsWindow.refresh()
         // 一覧を出している画面に出す。center() だと別のディスプレイに飛ぶことがある
-        if let settings = rulesWindow.window,
+        if let settings = settingsWindow.window,
            let screen = listWindow.window?.screen ?? NSScreen.main {
             let area = screen.visibleFrame
             settings.setFrameOrigin(NSPoint(
@@ -168,7 +168,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 y: area.midY - settings.frame.height / 2))
         }
         NSApp.activate(ignoringOtherApps: true)
-        rulesWindow.showWindow(nil)
+        settingsWindow.showWindow(nil)
     }
 
     private func refresh() {
