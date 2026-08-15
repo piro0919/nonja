@@ -71,6 +71,8 @@ final class ListWindowController: NSWindowController {
     private let status = NSTextField(labelWithString: "")
     /// 測った行の高さ。鍵は uuid と幅
     private var heights: [String: CGFloat] = [:]
+    /// 通知センターの読み直しをまとめるための待ち時間
+    private var reloadTimer: Timer?
     /// 状態表示は平常時に文字を持たない。畳めるよう、関わる制約を持っておく
     private var statusHeight: NSLayoutConstraint!
     private var statusGap: NSLayoutConstraint!
@@ -314,9 +316,10 @@ final class ListWindowController: NSWindowController {
 
     private func open(_ item: NonjaNotification) {
         state.clicked.insert(item.uuid)
+        // 先に飛ぶ。通知センターから消してから押しても、押す相手が居ない
+        Opener.open(item)
         retire(item)
         state.save()
-        Opener.open(item)
         // 開いた時点で用は済んでいる。一覧からは下ろす
         inbox.removeAll { $0.uuid == item.uuid }
         rebuildRows()
@@ -327,6 +330,32 @@ final class ListWindowController: NSWindowController {
     private func retire(_ item: NonjaNotification) {
         state.retired.insert(item.uuid)
         state.read.insert(item.uuid)
+        forget(item)
+    }
+
+    /// 通知センター側からも消す（SPEC.md「通知センター側も消す」）。
+    ///
+    /// **失敗しても一覧の操作は続ける。** 書き込みは唯一 Apple の非公開の仕組みに
+    /// 手を入れる場所なので、ここで止まると Nonja そのものが使えなくなる。
+    /// 消せなかったときは通知センターに残るだけで、こちらの表示は正しい
+    private func forget(_ item: NonjaNotification) {
+        guard let uuid = UUID(uuidString: item.uuid) else { return }
+        do {
+            try Forget.forget(uuid: uuid)
+            scheduleReload()
+        } catch {
+            nonjaLog.error("通知センターから消せませんでした: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// 常駐プロセスの再起動はまとめる。
+    ///
+    /// 1件ごとに落とすと「すべて既読」で連続再起動になる。最後の削除から間を置いて一度だけ落とす
+    private func scheduleReload() {
+        reloadTimer?.invalidate()
+        reloadTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { _ in
+            Forget.reload()
+        }
     }
 
     /// 行に出したボタンから既読にする。Delete と同じ扱いで、元アプリへは飛ばない
