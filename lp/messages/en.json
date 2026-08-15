@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "title": "Nonja — a quiet inbox for macOS notifications",
+    "description": "No banners. Notifications collect quietly in the background, and you read them when you decide to. A menu bar app for macOS."
+  },
+  "hero": {
+    "badge": "macOS 14 and later",
+    "title": "Notifications can wait until you look",
+    "tagline": "Banners interrupt. Notification Center pours everything into one stream with no sense of read or unread and no way to deal with a batch. Nonja gives you somewhere else to look, and only when you ask.",
+    "download": "Download",
+    "source": "View source",
+    "note": "Free and open source. Apple Silicon"
+  },
+  "problem": {
+    "title": "What goes wrong today",
+    "lead": "The notifications themselves are not the problem. Not choosing when to read them is, and so is having no way to deal with the pile afterwards.",
+    "items": [
+      {
+        "title": "They interrupt",
+        "body": "The top right of your screen is taken while you are working. You have looked before you decided whether it was worth looking at."
+      },
+      {
+        "title": "They blur together",
+        "body": "Notification Center lists every app in one timeline. As the count grows, the thing that mattered wears the same face as everything else."
+      },
+      {
+        "title": "They never clear",
+        "body": "There is no read or unread, and no way to handle a group. You end up dismissing things one at a time that you never cared about."
+      }
+    ]
+  },
+  "features": {
+    "title": "What Nonja does",
+    "items": [
+      {
+        "title": "Collects quietly",
+        "body": "Turn banners off in System Settings. Notifications still arrive in Notification Center, Nonja reads them from there and builds a list. Nothing appears on screen."
+      },
+      {
+        "title": "Groups by app",
+        "body": "Not one timeline but a bundle per sender, and each bundle's heading clears that app's notifications in a single click."
+      },
+      {
+        "title": "Takes you to the source",
+        "body": "Clicking a row presses the real notification, so you land wherever that app meant to take you — not just at its front door."
+      },
+      {
+        "title": "Shows no numbers",
+        "body": "No badge count in the menu bar. A filled mark means something is waiting, an outline means nothing is. When something arrives, the shuriken turns once."
+      }
+    ]
+  },
+  "screens": {
+    "title": "The windows",
+    "lead": "Click the mark in the menu bar and the list opens directly beneath it, sized to whatever is in it.",
+    "list": "The inbox, bundled by app",
+    "settings": "Settings, which for now is launch at login"
+  },
+  "how": {
+    "title": "How it reads them",
+    "body": "macOS keeps a database behind Notification Center, and Nonja opens it read-only. This is not something Apple documents, so it is worth being plain about.",
+    "points": [
+      "It only reads. Nothing is written, and the original notification stays in Notification Center",
+      "Full Disk Access is required. Accessibility is required as well, to follow a notification to its app",
+      "If a permission is revoked or an update moves the store, it says so on screen rather than going quiet",
+      "Built this way, it carries a standing risk that a macOS update breaks it"
+    ]
+  },
+  "install": {
+    "title": "Installing",
+    "steps": [
+      {
+        "title": "Download the DMG",
+        "body": "Take the latest DMG from GitHub Releases and drag Nonja into your Applications folder."
+      },
+      {
+        "title": "Allow it once",
+        "body": "The first launch is blocked, because Nonja is self-signed. Open System Settings → Privacy & Security, scroll to the bottom, and click Open Anyway. Only the once."
+      },
+      {
+        "title": "Grant the permissions",
+        "body": "Allow Full Disk Access and Accessibility. Then turn banners off in System Settings, which is what makes the whole thing worth having."
+      }
+    ]
+  },
+  "footer": {
+    "built": "Nonja is a tool built by one person. Notification + Ninja.",
+    "source": "See it on GitHub"
+  },
+  "language": {
+    "en": "EN",
+    "ja": "日本語"
+  }
+}

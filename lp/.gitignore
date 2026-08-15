@@ -1,0 +1,5 @@
+node_modules/
+.next/
+tsconfig.tsbuildinfo
+public/sitemap*.xml
+public/robots.txt
