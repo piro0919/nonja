@@ -4,30 +4,11 @@
     "description": "No banners. Notifications collect quietly in the background, and you read them when you decide to. A menu bar app for macOS."
   },
   "hero": {
-    "badge": "macOS 14 and later",
     "title": "Notifications can wait until you look",
     "tagline": "Banners interrupt. Notification Center pours everything into one stream with no sense of read or unread and no way to deal with a batch. Nonja gives you somewhere else to look, and only when you ask.",
     "download": "Download",
     "source": "View source",
     "note": "Free and open source. Apple Silicon"
-  },
-  "problem": {
-    "title": "What goes wrong today",
-    "lead": "The notifications themselves are not the problem. Not choosing when to read them is, and so is having no way to deal with the pile afterwards.",
-    "items": [
-      {
-        "title": "They interrupt",
-        "body": "The top right of your screen is taken while you are working. You have looked before you decided whether it was worth looking at."
-      },
-      {
-        "title": "They blur together",
-        "body": "Notification Center lists every app in one timeline. As the count grows, the thing that mattered wears the same face as everything else."
-      },
-      {
-        "title": "They never clear",
-        "body": "There is no read or unread, and no way to handle a group. You end up dismissing things one at a time that you never cared about."
-      }
-    ]
   },
   "features": {
     "title": "What Nonja does",
@@ -51,17 +32,7 @@
     ]
   },
   "screens": {
-    "list": "The inbox, bundled by app",
-    "settings": "Settings, which for now is launch at login"
-  },
-  "how": {
-    "title": "How it reads them",
-    "body": "macOS keeps a database behind Notification Center, and Nonja opens it read-only. This is not something Apple documents, so it is worth being plain about.",
-    "points": [
-      "It only reads. Nothing is written, and the original notification stays in Notification Center",
-      "Full Disk Access is required. Accessibility is required as well, to follow a notification to its app",
-      "The store is undocumented, so an update can move it out of reach. If that happens it says so on screen rather than quietly showing you an empty list"
-    ]
+    "list": "The inbox, bundled by app"
   },
   "install": {
     "title": "Installing",
