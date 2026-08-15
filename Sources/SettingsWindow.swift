@@ -32,7 +32,18 @@ final class SettingsWindowController: NSWindowController {
         login.target = self
         login.action = #selector(loginChanged)
 
-        let column = NSStackView(views: [login])
+        // 手で更新を確かめる口。Konechi・Gocci と同じく設定に置く。
+        // 確認そのものは起動時に1回走るが、常駐して落とさない使い方だと機会が無い
+        let update = NSButton(title: "更新を確認", target: self, action: #selector(checkForUpdates))
+        update.bezelStyle = .rounded
+
+        let version = Bundle.main
+            .object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-"
+        let about = NSTextField(labelWithString: "Nonja \(version)")
+        about.font = .systemFont(ofSize: 11)
+        about.textColor = .secondaryLabelColor
+
+        let column = NSStackView(views: [login, update, about])
         column.orientation = .vertical
         column.alignment = .leading
         column.spacing = 12
@@ -63,6 +74,10 @@ final class SettingsWindowController: NSWindowController {
     func refresh() {
         login.state = Login.isEnabled ? .on : .off
         fitToContent()
+    }
+
+    @objc private func checkForUpdates() {
+        Updater.shared.checkNow()
     }
 
     @objc private func loginChanged() {
