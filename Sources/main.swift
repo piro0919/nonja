@@ -138,16 +138,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showMenu() {
+        // 置くのは設定と終了だけ（SPEC.md「メニューに置くもの」）。
+        // 読み直しは 10 秒ごとに走り、既読はアプリごとの見出しにあり、
+        // OS の通知設定は見出しのアプリ名から開く。ここに並べる理由がない
         let menu = NSMenu()
-        menu.addItem(withTitle: "今すぐ読み直す", action: #selector(refreshNow), keyEquivalent: "r")
-            .target = self
-        menu.addItem(withTitle: "すべて既読にする", action: #selector(markAllRead), keyEquivalent: "")
-            .target = self
         menu.addItem(withTitle: "設定…", action: #selector(showSettings), keyEquivalent: ",")
-            .target = self
-        menu.addItem(withTitle: "通知のバナーを止める…", action: #selector(openNotificationSettings),
-                     keyEquivalent: "").target = self
-        menu.addItem(withTitle: "更新を確認…", action: #selector(checkForUpdates), keyEquivalent: "")
             .target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Nonja を終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
@@ -156,21 +151,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = nil
     }
 
-    @objc private func refreshNow() { refresh() }
-
-    @objc private func checkForUpdates() { Updater.shared.checkNow() }
-
-    @objc private func markAllRead() {
-        listWindow.markAllRead()
-        refresh()
-    }
-
-    /// バナーを止めるのは OS 側の設定。ここから直接その画面を開く
-    @objc private func openNotificationSettings() {
-        guard let url = URL(string:
-            "x-apple.systempreferences:com.apple.preference.notifications") else { return }
-        NSWorkspace.shared.open(url)
-    }
 
     @objc func showSettings() {
         settingsWindow.refresh()
