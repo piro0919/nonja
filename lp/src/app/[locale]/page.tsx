@@ -44,47 +44,51 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <>
-      {/* 見出し。アイコンと同じグラデーションを敷いて、名前と絵を結び付ける */}
-      <header className="brand px-6 pt-8 pb-24 text-white">
+      {/* 見出し。文章より先に、動いている実物を見せる */}
+      <header className="brand px-6 pt-8 pb-0 text-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <span className="font-bold text-lg tracking-tight">Nonja</span>
+          <div className="flex items-center gap-3">
+            <Image alt="" className="rounded-[24%]" height={32} src="/icon.png" width={32} />
+            <span className="font-bold text-lg tracking-tight">Nonja</span>
+          </div>
           <LanguageSwitch />
         </div>
 
-        <div className="mx-auto mt-16 flex max-w-5xl flex-col items-center gap-12 lg:flex-row lg:items-center">
-          <div className="flex-1 text-center lg:text-left">
-            <span className="inline-block rounded-full border border-white/40 px-3 py-1 text-sm">
-              {t("hero.badge")}
-            </span>
-            <h1 className="mt-6 font-bold text-4xl leading-tight tracking-tight sm:text-5xl">
-              {t("hero.title")}
-            </h1>
-            <p className="mt-5 text-lg text-white/85 leading-relaxed">{t("hero.tagline")}</p>
+        <div className="mx-auto mt-14 max-w-3xl text-center">
+          <span className="inline-block rounded-full border border-white/40 px-3 py-1 text-sm">
+            {t("hero.badge")}
+          </span>
+          <h1 className="mt-6 font-bold text-4xl leading-tight tracking-tight sm:text-5xl">
+            {t("hero.title")}
+          </h1>
+          <p className="mt-5 text-lg text-white/85 leading-relaxed">{t("hero.tagline")}</p>
 
-            <div className="mt-9 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
-              <a
-                className="rounded-full bg-white px-8 py-3.5 font-bold text-navy-deep transition hover:bg-white/90"
-                href={DOWNLOAD}
-              >
-                {t("hero.download")}
-              </a>
-              <a
-                className="rounded-full border border-white/50 px-8 py-3.5 font-bold transition hover:bg-white/10"
-                href={REPO}
-              >
-                {t("hero.source")}
-              </a>
-            </div>
-            <p className="mt-4 text-sm text-white/60">{t("hero.note")}</p>
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+            <a
+              className="rounded-full bg-white px-8 py-3.5 font-bold text-navy-deep transition hover:bg-white/90"
+              href={DOWNLOAD}
+            >
+              {t("hero.download")}
+            </a>
+            <a
+              className="rounded-full border border-white/50 px-8 py-3.5 font-bold transition hover:bg-white/10"
+              href={REPO}
+            >
+              {t("hero.source")}
+            </a>
           </div>
+          <p className="mt-4 text-sm text-white/60">{t("hero.note")}</p>
+        </div>
 
+        {/* メニューバーの印と、その真下に開く窓。位置の関係ごと見せる */}
+        <div className="mx-auto mt-14 max-w-4xl">
           <Image
-            alt="Nonja"
-            className="w-40 rounded-[22%] shadow-2xl sm:w-56"
-            height={512}
+            alt={t("screens.list")}
+            className="w-full translate-y-px rounded-t-2xl"
+            height={470}
             priority={true}
-            src="/icon.png"
-            width={512}
+            src="/hero.png"
+            width={820}
           />
         </div>
       </header>
@@ -103,10 +107,11 @@ export default async function Page({ params }: PageProps) {
         </Section>
       </div>
 
+      {/* することは4つ。枠で囲まず、赤い罫だけで区切る */}
       <Section title={t("features.title")}>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-x-12 gap-y-10 sm:grid-cols-2">
           {features.map((item) => (
-            <div className="rounded-2xl border border-line bg-white p-7" key={item.title}>
+            <div className="border-signal border-l-2 pl-5" key={item.title}>
               <h3 className="font-bold text-xl">{item.title}</h3>
               <p className="mt-3 text-ink/70 leading-relaxed">{item.body}</p>
             </div>
@@ -114,25 +119,28 @@ export default async function Page({ params }: PageProps) {
         </div>
       </Section>
 
-      {/* 実物。文章より画面のほうが早い */}
+      {/* 仕組みを隠さない。設定の小ささもここで見せる */}
       <div className="dot-bg">
-        <Section lead={t("screens.lead")} title={t("screens.title")}>
-          <div className="grid items-start gap-8 sm:grid-cols-2">
-            <figure>
-              <Image
-                alt={t("screens.list")}
-                className="w-full rounded-xl border border-line shadow-lg"
-                height={216}
-                src="/list.png"
-                width={480}
-              />
-              <figcaption className="mt-3 text-ink/60 text-sm">{t("screens.list")}</figcaption>
-            </figure>
+        <Section title={t("how.title")}>
+          <div className="grid items-start gap-10 sm:grid-cols-[1.4fr_1fr]">
+            <div>
+              <p className="text-ink/70 text-lg leading-relaxed">{t("how.body")}</p>
+              <ul className="mt-8 space-y-3">
+                {points.map((point) => (
+                  <li className="flex gap-3 text-ink/70 leading-relaxed" key={point}>
+                    <span aria-hidden={true} className="text-signal">
+                      ◆
+                    </span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <figure>
               <Image
                 alt={t("screens.settings")}
-                className="w-full max-w-xs rounded-xl border border-line shadow-lg"
-                height={88}
+                className="w-full rounded-xl border border-line shadow-lg"
+                height={150}
                 src="/settings.png"
                 width={320}
               />
@@ -142,41 +150,24 @@ export default async function Page({ params }: PageProps) {
         </Section>
       </div>
 
-      {/* どうやって読んでいるか。仕組みを隠さない */}
-      <Section title={t("how.title")}>
-        <p className="max-w-3xl text-ink/70 text-lg leading-relaxed">{t("how.body")}</p>
-        <ul className="mt-8 space-y-3">
-          {points.map((point) => (
-            <li className="flex gap-3 text-ink/70 leading-relaxed" key={point}>
-              <span aria-hidden={true} className="text-signal">
-                ◆
-              </span>
-              <span>{point}</span>
+      {/* 入れ方。自己署名なので初回だけ手間がかかる。隠さずに書く */}
+      <Section id="install" title={t("install.title")}>
+        <ol className="grid gap-5 sm:grid-cols-3">
+          {steps.map((step, index) => (
+            <li className="rounded-2xl border border-line bg-white p-6" key={step.title}>
+              <span className="font-bold text-signal text-sm">{index + 1}</span>
+              <h3 className="mt-2 font-bold text-lg">{step.title}</h3>
+              <p className="mt-3 text-ink/70 leading-relaxed">{step.body}</p>
             </li>
           ))}
-        </ul>
+        </ol>
+        <a
+          className="mt-10 inline-block rounded-full bg-navy-deep px-8 py-3.5 font-bold text-white transition hover:opacity-90"
+          href={DOWNLOAD}
+        >
+          {t("hero.download")}
+        </a>
       </Section>
-
-      {/* 入れ方。自己署名なので初回だけ手間がかかる。隠さずに書く */}
-      <div className="dot-bg">
-        <Section id="install" title={t("install.title")}>
-          <ol className="grid gap-5 sm:grid-cols-3">
-            {steps.map((step, index) => (
-              <li className="rounded-2xl border border-line bg-white p-6" key={step.title}>
-                <span className="font-bold text-signal text-sm">{index + 1}</span>
-                <h3 className="mt-2 font-bold text-lg">{step.title}</h3>
-                <p className="mt-3 text-ink/70 leading-relaxed">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-          <a
-            className="mt-10 inline-block rounded-full bg-navy-deep px-8 py-3.5 font-bold text-white transition hover:opacity-90"
-            href={DOWNLOAD}
-          >
-            {t("hero.download")}
-          </a>
-        </Section>
-      </div>
 
       <footer className="border-line border-t px-6 py-10 text-center text-ink/60 text-sm">
         <p>{t("footer.built")}</p>
