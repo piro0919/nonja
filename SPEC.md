@@ -295,6 +295,16 @@ Sparkle の鍵はアプリ単位ではなくキーチェーン単位で作られ
 配布は `./release.sh <版数>`。ビルド、自己テスト、DMG と zip、appcast の署名、
 GitHub Releases への登録までを通す。
 
+**手元のビルドは、起動すると公開版に置き換わる。** `build.sh` は版数を既定で 0.0.0 にする。
+appcast は公開版を配っているので、起動のたびに更新対象と判定され、
+`Nonja.app` が丸ごとリリース版に差し替わる。直したはずの画面が元に戻り、
+ビルドし直しても戻る、という形で出る。
+
+**確かめながら直すときは `NONJA_VERSION=99.0.0 ./build.sh`。**
+公開版より新しくしておけば置き換わらない。
+戻されたかどうかは `/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString'
+Nonja.app/Contents/Info.plist` で分かる。0.1.0 などが出たらそれは自分のビルドではない。
+
 ### 画面を組むときの落とし穴
 
 **位置を制約で決める部品は `translatesAutoresizingMaskIntoConstraints` を必ず切る。**
