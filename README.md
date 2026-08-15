@@ -74,6 +74,7 @@ the Notification Center database.
 
 ```sh
 ./build.sh                               # produces Nonja.app
+NONJA_VERSION=99.0.0 ./build.sh          # same, but Sparkle won't replace it (see below)
 ./Nonja.app/Contents/MacOS/Nonja --selftest   # rule behaviour
 ./Nonja.app/Contents/MacOS/Nonja --dump       # what it can read
 ./Nonja.app/Contents/MacOS/Nonja --press UUID # jump to an app
@@ -85,6 +86,13 @@ signs the appcast, and pushes a GitHub release.
 
 Development builds are signed with a self-signed certificate. Ad-hoc signing
 changes identity on every build, and macOS drops both permissions each time.
+
+`build.sh` stamps 0.0.0 unless told otherwise, and the appcast advertises the
+released version, so a development build updates itself back to the release on
+launch — your change disappears and rebuilding does not bring it back. Pass a
+version above the released one while working, and check which build you are
+actually running with
+`/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Nonja.app/Contents/Info.plist`.
 
 ## A warning worth reading
 

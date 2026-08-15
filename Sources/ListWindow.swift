@@ -8,25 +8,30 @@ final class KeyTableView: NSTableView {
         if controller?.keyDownInTable(event) == true { return }
         super.keyDown(with: event)
     }
-}
 
-/// 指を乗せている間だけ、中の部品を見せる行。
-///
-/// 隠すと幅が動いて落ち着かないので、透明にして場所は取らせたままにする
-final class HoverRevealView: NSStackView {
-    weak var revealed: NSView?
-
+    /// カーソルの下の行を知るための領域。表に一つだけ置く
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         trackingAreas.forEach(removeTrackingArea)
         addTrackingArea(NSTrackingArea(
-            rect: bounds,
-            options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect],
+            rect: .zero,
+            options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect],
             owner: self))
     }
 
-    override func mouseEntered(with event: NSEvent) { revealed?.alphaValue = 1 }
-    override func mouseExited(with event: NSEvent) { revealed?.alphaValue = 0 }
+    override func mouseMoved(with event: NSEvent) { controller?.updateHover() }
+    override func mouseEntered(with event: NSEvent) { controller?.updateHover() }
+    override func mouseExited(with event: NSEvent) { controller?.updateHover() }
+}
+
+/// 指を乗せている間だけ、中の部品を見せる行。
+///
+/// 隠すと幅が動いて落ち着かないので、透明にして場所は取らせたままにする。
+/// **出し入れの判断は行では持たない。** 行ごとに追跡領域を置くと、スクロールで
+/// 通り過ぎたときに入った通知だけが来て出た通知が来ず、出たままの行が溜まる。
+/// 表がカーソルの位置から一行だけ選ぶ（`ListWindowController.updateHover`）
+final class HoverRevealView: NSStackView {
+    weak var revealed: NSView?
 }
 
 /// 選択の帯を角丸にする。左右に余白を取って、窓の縁まで届かせない
@@ -57,6 +62,8 @@ final class ListWindowController: NSWindowController {
     private let search = NSSearchField()
     private let status = NSTextField(labelWithString: "")
     /// 状態表示は平常時に文字を持たない。畳めるよう、関わる制約を持っておく
+    /// 測った行の高さ。鍵は uuid と幅
+    private var heights: [String: CGFloat] = [:]
     private var statusHeight: NSLayoutConstraint!
     private var statusGap: NSLayoutConstraint!
     private var statusBottom: NSLayoutConstraint!
@@ -135,9 +142,10 @@ final class ListWindowController: NSWindowController {
         table.style = .plain
         table.backgroundColor = .clear
         table.intercellSpacing = NSSize(width: 0, height: 2)
+        // 行の高さは中身で決める（`heightOfRow`）。固定にすると三行以上の本文が下で切れる。
+        // `usesAutomaticRowHeights` は使わない。幅まで中身に決めさせてしまい、行が窓からはみ出す
         table.dataSource = self
         table.delegate = self
-        table.target = self
         // 一段目のクリックで開く。ダブルクリックは気付ける見た目をしていなかった
         table.target = self
         table.action = #selector(rowClicked)
@@ -151,6 +159,11 @@ final class ListWindowController: NSWindowController {
         scroll.automaticallyAdjustsContentInsets = false
         scroll.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
         scroll.translatesAutoresizingMaskIntoConstraints = false
+        // スクロールしただけではマウスは動かないので通知が来ない。位置を引き直す口を作る
+        scroll.contentView.postsBoundsChangedNotifications = true
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(scrolled),
+            name: NSView.boundsDidChangeNotification, object: scroll.contentView)
 
         let gear = NSButton(image: NSImage(systemSymbolName: "gearshape",
                                            accessibilityDescription: "設定") ?? NSImage(),
@@ -229,6 +242,7 @@ final class ListWindowController: NSWindowController {
             rows.append(contentsOf: items.map { Row.item($0) })
         }
         table.reloadData()
+        updateHover()
         focusTable()
         // 組み直したら必ず先頭に戻す。前の位置に留まると、どこを見ているか分からなくなる
         if !rows.isEmpty { table.scrollRowToVisible(0) }
@@ -273,6 +287,23 @@ final class ListWindowController: NSWindowController {
             return true
         default:
             return false
+        }
+    }
+
+    /// カーソルの真下の行だけボタンを見せる。
+    ///
+    /// 位置から毎回引き直すので、スクロールでも窓の外へ出ても取り残しが出ない
+    @objc private func scrolled() { updateHover() }
+
+    func updateHover() {
+        guard let window = table.window else { return }
+        let inTable = table.convert(window.mouseLocationOutsideOfEventStream, from: nil)
+        let hovered = table.bounds.contains(inTable) ? table.row(at: inTable) : -1
+        for row in table.rows(in: table.visibleRect).lowerBound
+            ..< table.rows(in: table.visibleRect).upperBound {
+            guard let view = table.view(atColumn: 0, row: row, makeIfNecessary: false)
+                    as? HoverRevealView else { continue }
+            view.revealed?.alphaValue = row == hovered ? 1 : 0
         }
     }
 
@@ -366,11 +397,6 @@ final class ListWindowController: NSWindowController {
 extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
     func numberOfRows(in tableView: NSTableView) -> Int { rows.count }
 
-    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-        if case .header = rows[row] { return 28 }
-        return 56
-    }
-
     /// 見出しは選ばせない
     func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
         if case .header = rows[row] { return false }
@@ -419,7 +445,10 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         body.font = .systemFont(ofSize: 12.5, weight: .medium)
         body.textColor = .labelColor
         body.lineBreakMode = .byTruncatingTail
-        body.maximumNumberOfLines = 2
+        body.maximumNumberOfLines = 3
+        // 折り返す幅を先に教える。これが無いと本文が一行のまま伸び、
+        // 高さも測れず、行が窓の外へ出ていく
+        body.preferredMaxLayoutWidth = Self.bodyWidth(in: table.bounds.width)
 
         let time = NSTextField(labelWithString: Self.formatter.string(from: when))
         time.font = .systemFont(ofSize: 10)
@@ -444,6 +473,31 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         row.edgeInsets = NSEdgeInsets(top: 8, left: 16, bottom: 8, right: 14)
         row.revealed = read
         return row
+    }
+
+    /// 本文が使える幅。左の余白と絵、右の余白と「既読」のぶんを引く
+    private static func bodyWidth(in tableWidth: CGFloat) -> CGFloat {
+        max(120, tableWidth - (16 + 26 + 10 + 14 + 44))
+    }
+
+    /// 行ごとの高さ。中身を一度組んで測る。
+    ///
+    /// 表は 10 秒ごとに読み直すので、同じ幅で測った結果は取っておく
+    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+        switch rows[row] {
+        case .header:
+            return 28
+        case .item(let item):
+            let width = tableView.bounds.width
+            let key = "\(item.uuid)@\(Int(width))"
+            if let known = heights[key] { return known }
+            let view = cell(item)
+            view.setFrameSize(NSSize(width: width, height: 0))
+            view.layoutSubtreeIfNeeded()
+            let height = max(44, view.fittingSize.height)
+            heights[key] = height
+            return height
+        }
     }
 
     /// 見出しに並べる小さなボタン。文字だけの控えめな見た目にする
