@@ -10,51 +10,80 @@ import AppKit
 /// 未処理があるかないかだけを、塗りと輪郭で言う。
 enum Mark {
 
+    // 一辺を 100 とした座標で組み立てる。値の根拠は以下。
+    //
+    // - 尖りは 46。線幅の半分が外へ出るので、輪郭でも 49 に収まり縁に触れない
+    // - 抉りの円は中心から 36 の位置に半径 20。これより浅いと腕が太って手裏剣に見えず、
+    //   これより深いと 18pt で腕が消える
+    // - 中央の穴は 11。18pt では 2 ピクセルほどになり、これ以上小さいと潰れる
+    // - 線幅 6。18pt で約 1 ピクセルに乗る。7 だと細い腕の内側が線で埋まる
+    private static let tipRadius: CGFloat = 46
+    private static let biteCenter: CGFloat = 36
+    private static let biteRadius: CGFloat = 20
+    /// 抉りの円のうち、輪郭として使う範囲。中心を向く点から左右にこの角度ぶん
+    private static let biteSpan: CGFloat = 60
+    private static let holeRadius: CGFloat = 11
+    private static let stroke: CGFloat = 6
+
     static func menuBarImage(hasItems: Bool, size: CGFloat = 18) -> NSImage {
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
-            let s = rect.width / 100  // 100 を一辺とした座標で組み立てる
-            func p(_ x: CGFloat, _ y: CGFloat) -> NSPoint { NSPoint(x: x * s, y: y * s) }
-
-            // 胴。裾から左を上がり、頂点を回って右へ下りる。一本の閉じた形として引く
-            let bell = NSBezierPath()
-            bell.move(to: p(20, 26))
-            bell.curve(to: p(26, 54), controlPoint1: p(20, 40), controlPoint2: p(25, 44))
-            bell.curve(to: p(50, 82), controlPoint1: p(27, 70), controlPoint2: p(36, 82))
-            bell.curve(to: p(74, 54), controlPoint1: p(64, 82), controlPoint2: p(73, 70))
-            bell.curve(to: p(80, 26), controlPoint1: p(75, 44), controlPoint2: p(80, 40))
-            // 裾は少し外へ張り出して、丸めた角で閉じる
-            bell.curve(to: p(84, 20), controlPoint1: p(84, 26), controlPoint2: p(84, 24))
-            bell.line(to: p(16, 20))
-            bell.curve(to: p(20, 26), controlPoint1: p(16, 24), controlPoint2: p(16, 26))
-            bell.close()
-            bell.appendOval(in: NSRect(x: 44 * s, y: 79 * s, width: 12 * s, height: 12 * s))
-            bell.appendOval(in: NSRect(x: 41 * s, y: 6 * s, width: 18 * s, height: 18 * s))
-
-            // 覆面のスリット。丸めた端を胴の中に置くと両脇に黒い出っ張りが残るので、
-            // 胴より外まで伸ばした真っ直ぐな帯で断ち切る
-            let slit = NSRect(x: 0, y: 45 * s, width: 100 * s, height: 10 * s)
+            let s = rect.width / 100
+            let star = shuriken(scale: s)
+            let hole = NSBezierPath(ovalIn: NSRect(
+                x: (50 - holeRadius) * s, y: (50 - holeRadius) * s,
+                width: holeRadius * 2 * s, height: holeRadius * 2 * s))
 
             NSColor.black.setFill()
             NSColor.black.setStroke()
 
-            // 帯は切り抜きであって形の一部ではない。塗りにも輪郭にも同じ切り抜きを当てる。
-            // 帯を足して evenOdd で塗ると、胴の外へ出た帯まで塗られて横棒が刺さる
-            NSGraphicsContext.saveGraphicsState()
-            let clip = NSBezierPath(rect: rect)
-            clip.appendRect(slit)
-            clip.windingRule = .evenOdd
-            clip.setClip()
             if hasItems {
-                bell.fill()
+                // 穴は切り抜き。図形に足して evenOdd で塗ると、外へ出た部分まで塗られる
+                let path = star.copy() as! NSBezierPath
+                path.append(hole)
+                path.windingRule = .evenOdd
+                path.fill()
             } else {
-                // 何も溜まっていないときは輪郭だけ
-                bell.lineWidth = 7 * s
-                bell.stroke()
+                // 空のときは穴を描かない。細い腕の内側と穴の線がぶつかって中央が潰れる
+                star.lineWidth = stroke * s
+                star.stroke()
             }
-            NSGraphicsContext.restoreGraphicsState()
             return true
         }
         image.isTemplate = true
         return image
+    }
+
+    /// 四方に尖った手裏剣の輪郭。
+    ///
+    /// 尖りと尖りの間は、対角線上に置いた円で抉る。腕の縁をその円の接線にすると、
+    /// 繋ぎ目に角が出ない。塗りと輪郭で同じ道筋を使いたいので、
+    /// 抉りは切り抜きではなく輪郭そのものとして引く（輪郭のときに線が途切れないため）
+    private static func shuriken(scale s: CGFloat) -> NSBezierPath {
+        let center = NSPoint(x: 50 * s, y: 50 * s)
+        func point(_ degrees: CGFloat, _ radius: CGFloat) -> NSPoint {
+            let a = degrees * .pi / 180
+            return NSPoint(x: center.x + cos(a) * radius * s,
+                           y: center.y + sin(a) * radius * s)
+        }
+
+        let path = NSBezierPath()
+        for arm in 0..<4 {
+            let axis = 90 + CGFloat(arm) * 90                 // 上・左・下・右
+            let tip = point(axis, tipRadius)
+            if arm == 0 { path.move(to: tip) } else { path.line(to: tip) }
+
+            // この腕と次の腕の間を抉る円。中心へ向いた側の弧だけを使う
+            let diagonal = axis + 45
+            let bite = point(diagonal, biteCenter)
+            // 弧は中心を向く点（diagonal + 180）を通す。逆回りにすると腕の外側を回り、
+            // 形が裏返る。始点と終点をこの順にして時計回りに引く
+            path.appendArc(
+                withCenter: bite, radius: biteRadius * s,
+                startAngle: diagonal + 180 + biteSpan,
+                endAngle: diagonal + 180 - biteSpan,
+                clockwise: true)
+        }
+        path.close()
+        return path
     }
 }
