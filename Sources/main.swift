@@ -102,7 +102,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if window.isVisible {
             window.orderOut(nil)
         } else {
-            listWindow.reload()
+            // 開くときだけ頭から見せる。以後の読み直しは位置を保つ
+            listWindow.reload(scrollToTop: true)
             placeUnderStatusItem(window)
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)

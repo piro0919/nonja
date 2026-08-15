@@ -219,8 +219,10 @@ final class ListWindowController: NSWindowController {
 
     // MARK: - 読み込み
 
+    /// `scrollToTop` は窓を開くときだけ真にする。
+    /// 10 秒ごとの読み直しで頭に戻すと、読んでいる最中に位置を奪われる
     @discardableResult
-    func reload() -> Int {
+    func reload(scrollToTop: Bool = false) -> Int {
         var failure: String?
         do {
             inbox = Engine.apply(try Store.recent(limit: 500), state: state).inbox
@@ -229,7 +231,7 @@ final class ListWindowController: NSWindowController {
             failure = "\(error)"
         }
         noticeArrivals()
-        rebuildRows()
+        rebuildRows(scrollToTop: scrollToTop)
         updateStatus(error: failure)
         return unreadCount
     }
@@ -245,7 +247,10 @@ final class ListWindowController: NSWindowController {
         if !now.subtracting(seen).isEmpty { onArrival?() }
     }
 
-    private func rebuildRows() {
+    private func rebuildRows(scrollToTop: Bool = false) {
+        // 組み直すと位置が失われるので、先に控える
+        let seenBefore = table.enclosingScrollView?.contentView.bounds.origin ?? .zero
+
         rows = []
         // アプリごとにまとめ、束の並びはその束の最新の時刻で決める
         let groups = Dictionary(grouping: inbox, by: \.bundleID)
@@ -261,8 +266,24 @@ final class ListWindowController: NSWindowController {
         fitHeight()
         updateHover()
         focusTable()
-        // 組み直したら必ず先頭に戻す。前の位置に留まると、どこを見ているか分からなくなる
-        if !rows.isEmpty { table.scrollRowToVisible(0) }
+
+        // **10 秒ごとの読み直しで頭へ戻さない。** 読んでいる最中に位置を奪われる。
+        // 頭から見せるのは窓を開いたときだけ
+        if scrollToTop {
+            if !rows.isEmpty { table.scrollRowToVisible(0) }
+        } else {
+            restoreScroll(to: seenBefore)
+        }
+    }
+
+    /// 控えた位置へ戻す。中身が減っていれば、収まる範囲まで詰める
+    private func restoreScroll(to origin: NSPoint) {
+        guard let scroll = table.enclosingScrollView, origin.y > 0 else { return }
+        let overflow = table.bounds.height - scroll.contentView.bounds.height
+        guard overflow > 0 else { return }
+        let y = min(origin.y, overflow)
+        scroll.contentView.scroll(to: NSPoint(x: origin.x, y: y))
+        scroll.reflectScrolledClipView(scroll.contentView)
     }
 
     /// 窓の高さを中身に合わせる（SPEC.md「窓の高さは中身に合わせる」）。
