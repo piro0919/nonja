@@ -94,7 +94,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func toggle() {
-        if NSApp.currentEvent?.type == .rightMouseUp {
+        if isSecondaryClick {
             showMenu()
             return
         }
@@ -107,6 +107,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
             window.makeKeyAndOrderFront(nil)
         }
+    }
+
+    /// 右クリックか、control を押しながらのクリックか。
+    ///
+    /// **`rightMouseUp` だけを見てはいけない。** 押している時間が長いと、
+    /// 動作が走る時点の出来事はまだ `rightMouseDown` で、右クリックだと判定できずに
+    /// 一覧が開いてしまう。速く押したときだけメニューが出る、という形で表に出た
+    private var isSecondaryClick: Bool {
+        guard let event = NSApp.currentEvent else { return false }
+        if event.type == .rightMouseUp || event.type == .rightMouseDown { return true }
+        // control を押しながらの左クリックも、macOS では右クリックと同じ扱い
+        return event.modifierFlags.contains(.control)
     }
 
     /// メニューバーの印の真下に出す。画面の端からははみ出させない
