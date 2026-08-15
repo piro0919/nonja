@@ -25,9 +25,19 @@ enum Mark {
     private static let holeRadius: CGFloat = 11
     private static let stroke: CGFloat = 6
 
-    static func menuBarImage(hasItems: Bool, size: CGFloat = 18) -> NSImage {
+    /// `rotation` は度。届いたときに短く回すために使う（SPEC.md「届いたら回す」）
+    static func menuBarImage(hasItems: Bool, size: CGFloat = 18,
+                             rotation: CGFloat = 0) -> NSImage {
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
             let s = rect.width / 100
+            if rotation != 0 {
+                // 中心を軸にする。原点のまま回すと画面の外へ出ていく
+                let move = NSAffineTransform()
+                move.translateX(by: rect.midX, yBy: rect.midY)
+                move.rotate(byDegrees: rotation)
+                move.translateX(by: -rect.midX, yBy: -rect.midY)
+                move.concat()
+            }
             let star = shuriken(scale: s)
             let hole = NSBezierPath(ovalIn: NSRect(
                 x: (50 - holeRadius) * s, y: (50 - holeRadius) * s,

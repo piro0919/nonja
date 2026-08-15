@@ -90,6 +90,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: SettingsWindowController!
     private let state = State.load()
     private var timer: Timer?
+    /// 届いたときに印を回している間だけ動く
+    private var spinTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         listWindow = ListWindowController(state: state)
@@ -97,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         listWindow.onOpenSettings = { [weak self] in self?.showSettings() }
         // 窓の中で片付けたら、メニューバーの数も合わせる
         listWindow.onChange = { [weak self] in self?.showPresence() }
+        listWindow.onArrival = { [weak self] in self?.spin() }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem.button?.image = Mark.menuBarImage(hasItems: false)
@@ -201,6 +204,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 件数は出さない。溜まっているかどうかだけを、印の塗りと輪郭で示す
     private func showPresence() {
+        guard spinTimer == nil else { return }   // 回している間は上書きしない
         statusItem.button?.image = Mark.menuBarImage(hasItems: listWindow.unreadCount > 0)
+    }
+
+    /// 届いたときに印を一回転させる（SPEC.md「届いたら回す」）。
+    ///
+    /// バナーの代わりではない。**気付かなくても構わない**合図なので、
+    /// 音も出さず、割り込まず、0.6 秒で終わる。回している間に次が届いたら、最初からやり直す
+    private func spin() {
+        nonjaLog.info("届いたので印を回します")
+        spinTimer?.invalidate()
+        let started = Date()
+        let duration: TimeInterval = 0.6
+        spinTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+            let progress = Date().timeIntervalSince(started) / duration
+            if progress >= 1 {
+                timer.invalidate()
+                self.spinTimer = nil
+                self.showPresence()
+                return
+            }
+            // 手裏剣は投げた向きに回る。負の角で時計回りになる
+            self.statusItem.button?.image = Mark.menuBarImage(
+                hasItems: self.listWindow.unreadCount > 0,
+                rotation: -360 * progress)
+        }
     }
 }
