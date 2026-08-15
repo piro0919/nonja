@@ -1,0 +1,8 @@
+{
+  "name": "nonja",
+  "private": true,
+  "scripts": {
+    "lp:dev": "pnpm --filter nonja-lp dev",
+    "lp:build": "pnpm --filter nonja-lp build"
+  }
+}

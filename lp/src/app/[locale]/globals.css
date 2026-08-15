@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  /* アイコンの配色をそのまま持ってくる。左上の藍から右下の濃紺へ落ちる */
+  --color-indigo: #2b2c8c;
+  --color-navy-deep: #12142e;
+  --color-signal: #f03a20;
+  --color-ink: #12142e;
+  --color-paper: #f5f3ef;
+  --color-line: #e2ded6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* 見出しの帯。アイコンと同じ向きのグラデーション */
+.brand {
+  background: linear-gradient(135deg, var(--color-indigo) 0%, var(--color-navy-deep) 100%);
+}
+
+/* 背景に薄く敷く点。通知が一粒ずつ溜まっていく面なので、格子ではなく点にする */
+.dot-bg {
+  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+  background-size: 22px 22px;
+}

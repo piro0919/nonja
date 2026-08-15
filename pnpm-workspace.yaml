@@ -1,0 +1,16 @@
+packages:
+  - lp
+
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+  '@swc/core': set this to true or false
+  sharp: set this to true or false
+
+# ビルド処理を走らせない依存。galopen と同じ扱いに揃えている
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@swc/core'
+  - sharp
+
+# スクリプト実行前の依存検査を切る。上の警告を失敗として扱われ、pnpm build が通らないため
+verifyDepsBeforeRun: false
