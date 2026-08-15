@@ -71,8 +71,6 @@ final class ListWindowController: NSWindowController {
 
     private var inbox: [NonjaNotification] = []
     private var rows: [Row] = []
-    /// 折りたたんだ束。数が多いアプリを畳んで、他を見やすくする
-    private var collapsed: Set<String> = []
     /// 中身が変わったらメニューバーの数も直したい
     var onChange: (() -> Void)?
     /// 設定を開く。右クリックの menu だけだと見つけられない
@@ -238,7 +236,6 @@ final class ListWindowController: NSWindowController {
         }
         for (bundleID, items) in ordered {
             rows.append(.header(bundleID: bundleID, app: items[0].appName))
-            if collapsed.contains(bundleID) { continue }
             rows.append(contentsOf: items.map { Row.item($0) })
         }
         table.reloadData()
@@ -367,12 +364,6 @@ final class ListWindowController: NSWindowController {
 
     // MARK: - 束ごとの操作
 
-    @objc private func toggleGroup(_ sender: NSButton) {
-        guard let bundleID = sender.identifier?.rawValue else { return }
-        if collapsed.contains(bundleID) { collapsed.remove(bundleID) } else { collapsed.insert(bundleID) }
-        rebuildRows()
-    }
-
     /// 束ごと既読にする。既読＝一覧から消える。元の通知は通知センターに残る
     @objc private func readGroup(_ sender: NSButton) {
         guard let bundleID = sender.identifier?.rawValue else { return }
@@ -415,11 +406,9 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             spacer.setContentHuggingPriority(.init(1), for: .horizontal)
 
             // 束ごとの操作。1件ずつ触らずに済むようにする
-            let twist = smallButton(collapsed.contains(bundleID) ? "▸" : "▾",
-                                    #selector(toggleGroup(_:)), bundleID)
             let readAll = smallButton("既読", #selector(readGroup(_:)), bundleID)
 
-            let stack = NSStackView(views: [twist, label, spacer, readAll])
+            let stack = NSStackView(views: [label, spacer, readAll])
             stack.orientation = .horizontal
             stack.alignment = .centerY
             stack.spacing = 6
@@ -441,7 +430,7 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         icon.widthAnchor.constraint(equalToConstant: 26).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 26).isActive = true
 
-        let body = NSTextField(labelWithString: text.isEmpty ? "（本文なし）" : text)
+        let body = NSTextField(labelWithString: text.isEmpty ? "（本文なし）" : Self.clip(text))
         body.font = .systemFont(ofSize: 12.5, weight: .medium)
         body.textColor = .labelColor
         body.lineBreakMode = .byTruncatingTail
@@ -473,6 +462,16 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         row.edgeInsets = NSEdgeInsets(top: 8, left: 16, bottom: 8, right: 14)
         row.revealed = read
         return row
+    }
+
+    /// 本文の行数を抑える。
+    ///
+    /// `maximumNumberOfLines` は折り返しにしか効かず、本文が自前で持っている改行は数えない。
+    /// 長い投稿がそのまま並ぶと一件で窓が埋まるので、文字の側で断つ
+    private static func clip(_ text: String, lines: Int = 3) -> String {
+        let all = text.components(separatedBy: "\n")
+        guard all.count > lines else { return text }
+        return all.prefix(lines).joined(separator: "\n") + "…"
     }
 
     /// 本文が使える幅。左の余白と絵、右の余白と「既読」のぶんを引く
