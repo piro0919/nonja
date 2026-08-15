@@ -37,23 +37,21 @@ enum Mark {
             NSColor.black.setFill()
             NSColor.black.setStroke()
 
+            // 帯は切り抜きであって形の一部ではない。塗りにも輪郭にも同じ切り抜きを当てる。
+            // 帯を足して evenOdd で塗ると、胴の外へ出た帯まで塗られて横棒が刺さる
+            NSGraphicsContext.saveGraphicsState()
+            let clip = NSBezierPath(rect: rect)
+            clip.appendRect(slit)
+            clip.windingRule = .evenOdd
+            clip.setClip()
             if hasItems {
-                let path = bell.copy() as! NSBezierPath
-                path.appendRect(slit)
-                path.windingRule = .evenOdd
-                path.fill()
+                bell.fill()
             } else {
-                // 何も溜まっていないときは輪郭だけ。スリットは切り抜きとして残したいので、
-                // 帯を除いた範囲に絞ってから線を引く
-                NSGraphicsContext.saveGraphicsState()
-                let clip = NSBezierPath(rect: rect)
-                clip.appendRect(slit)
-                clip.windingRule = .evenOdd
-                clip.setClip()
+                // 何も溜まっていないときは輪郭だけ
                 bell.lineWidth = 7 * s
                 bell.stroke()
-                NSGraphicsContext.restoreGraphicsState()
             }
+            NSGraphicsContext.restoreGraphicsState()
             return true
         }
         image.isTemplate = true
