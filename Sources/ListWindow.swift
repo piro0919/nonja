@@ -209,7 +209,9 @@ final class ListWindowController: NSWindowController {
             status.textColor = .systemRed
             return
         }
-        status.stringValue = inbox.isEmpty ? "溜まっていません" : "溜まっています"
+        // 平常時は何も言わない。一覧を見れば有無は分かる（SPEC.md「件数は出さない」）。
+        // 場所だけ残すのは、読めなくなったときの赤字の行き先として要るため
+        status.stringValue = ""
         status.textColor = .secondaryLabelColor
     }
 
