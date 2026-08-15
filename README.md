@@ -35,8 +35,10 @@ route in macOS Sequoia. System Settings is the way now.
   hard to read in the first place.
 - **Jumps to the source.** Clicking a row presses the real notification, so you land
   wherever that app meant to take you.
-- **Clears itself.** Per-app rules hold notifications for a while and drop the ones
-  you never touched.
+- **Clears itself, once you ask it to.** Add a rule for an app and its notifications
+  are held for a while, then dropped if you never touched them. Nothing expires until
+  you add that rule — a fresh install keeps everything, on purpose. Dropping a
+  notification only removes it from this inbox; the original stays in Notification Center.
 - **Shows no numbers.** A bell that is filled means something is waiting. That is the
   whole status display. Whether it is five or five hundred does not change what you
   are going to do about it.
