@@ -50,7 +50,8 @@ swiftc \
   -o "$APP/Contents/MacOS/Nonja" \
   Sources/Paths.swift Sources/Notification.swift Sources/Store.swift \
   Sources/Mark.swift Sources/Login.swift Sources/Rules.swift Sources/State.swift Sources/Engine.swift Sources/SelfTest.swift \
-  Sources/Updater.swift Sources/Opener.swift Sources/ListWindow.swift Sources/SettingsWindow.swift Sources/main.swift
+  Sources/Updater.swift Sources/Opener.swift Sources/Forget.swift \
+  Sources/ListWindow.swift Sources/SettingsWindow.swift Sources/main.swift
 
 # アイコンの下ごしらえ。元絵には手を入れず、build/ に加工したものを作る
 mkdir -p build "$APP/Contents/Resources"
