@@ -406,7 +406,8 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             spacer.setContentHuggingPriority(.init(1), for: .horizontal)
 
             // 束ごとの操作。1件ずつ触らずに済むようにする
-            let readAll = smallButton("既読", #selector(readGroup(_:)), bundleID)
+            // 行のボタンと同じ言葉にしない。どちらが一件でどちらが全部か読めなくなる
+            let readAll = smallButton("すべて既読", #selector(readGroup(_:)), bundleID)
 
             let stack = NSStackView(views: [label, spacer, readAll])
             stack.orientation = .horizontal
