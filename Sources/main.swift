@@ -216,7 +216,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         nonjaLog.info("届いたので印を回します")
         spinTimer?.invalidate()
         let started = Date()
-        let duration: TimeInterval = 0.6
+        // 減速するぶん、等速のときより少し長くしないと最後が駆け足になる
+        let duration: TimeInterval = 0.8
         spinTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] timer in
             guard let self else { timer.invalidate(); return }
             let progress = Date().timeIntervalSince(started) / duration
@@ -226,10 +227,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.showPresence()
                 return
             }
+            // 等速だと機械が回っているように見える。投げたものは勢いよく回り始めて、
+            // 抵抗で緩みながら止まる。三乗で減速させるとその感じになる
+            let eased = 1 - pow(1 - progress, 3)
             // 手裏剣は投げた向きに回る。負の角で時計回りになる
             self.statusItem.button?.image = Mark.menuBarImage(
                 hasItems: self.listWindow.unreadCount > 0,
-                rotation: -360 * progress)
+                rotation: -360 * eased)
         }
     }
 }
