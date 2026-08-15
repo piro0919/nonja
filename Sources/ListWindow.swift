@@ -34,6 +34,15 @@ final class HoverRevealView: NSStackView {
     weak var revealed: NSView?
 }
 
+/// 押せることをカーソルで伝えるボタン。
+///
+/// 見出しのアプリ名は文字だけの見た目なので、指の形に変わるかどうかが唯一の手掛かりになる
+final class PointingButton: NSButton {
+    override func resetCursorRects() {
+        addCursorRect(bounds, cursor: .pointingHand)
+    }
+}
+
 /// 選択の帯を角丸にする。左右に余白を取って、窓の縁まで届かせない
 final class RoundedRowView: NSTableRowView {
     override func drawSelection(in dirtyRect: NSRect) {
@@ -344,16 +353,14 @@ final class ListWindowController: NSWindowController {
 
     // MARK: - 束ごとの操作
 
-    /// そのアプリを一覧に出さなくする。仕組みは振り分けルールの「自動で既読」
-    /// （SPEC.md「アプリ単位で表示しない」）。戻すのは設定から
-    @objc private func muteGroup(_ sender: NSButton) {
-        guard let bundleID = sender.identifier?.rawValue else { return }
-        state.settings.rules.removeAll { $0.bundleID == bundleID }
-        state.settings.rules.append(
-            Rule(bundleID: bundleID, action: .mute, holdMinutes: 60))
-        state.save()
-        reload()
-        onChange?()
+    /// そのアプリの通知設定を OS 側で開く（SPEC.md「アプリ単位の通知は OS の設定へ送る」）。
+    /// Nonja 側では何も持たない。切る場所を二つに分けない
+    @objc private func openNotificationSettings(_ sender: NSButton) {
+        guard let bundleID = sender.identifier?.rawValue,
+              let url = URL(string: "x-apple.systempreferences:"
+                            + "com.apple.Notifications-Settings.extension?id=\(bundleID)")
+        else { return }
+        NSWorkspace.shared.open(url)
     }
 
     /// 束ごと既読にする。既読＝一覧から消える。元の通知は通知センターに残る
@@ -390,9 +397,15 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
                    viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         switch rows[row] {
         case .header(let bundleID, let app):
-            let label = NSTextField(labelWithString: app.uppercased())
+            // アプリ名そのものが、そのアプリの通知設定への入口。
+            // 見出しにボタンを増やさずに済む（SPEC.md「アプリ単位の通知は OS の設定へ送る」）
+            let label = PointingButton(title: app.uppercased(), target: self,
+                                       action: #selector(openNotificationSettings(_:)))
+            label.isBordered = false
+            label.bezelStyle = .inline
             label.font = .systemFont(ofSize: 10, weight: .bold)
-            label.textColor = .tertiaryLabelColor
+            label.contentTintColor = .tertiaryLabelColor
+            label.identifier = .init(bundleID)
 
             let spacer = NSView()
             spacer.setContentHuggingPriority(.init(1), for: .horizontal)
@@ -401,13 +414,7 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             // 行のボタンと同じ言葉にしない。どちらが一件でどちらが全部か読めなくなる
             let readAll = smallButton("すべて既読", #selector(readGroup(_:)), bundleID)
 
-            // 滅多に押さない操作なので、指を乗せた見出しにだけ出す。
-            // 「止める」では何が止まるのか伝わらないので、起きることをそのまま書く
-            let mute = smallButton("表示しない", #selector(muteGroup(_:)), bundleID)
-            mute.alphaValue = 0
-
-            let stack = HoverRevealView(views: [label, spacer, mute, readAll])
-            stack.revealed = mute
+            let stack = NSStackView(views: [label, spacer, readAll])
             stack.orientation = .horizontal
             stack.alignment = .centerY
             stack.spacing = 6
