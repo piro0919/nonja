@@ -1,5 +1,13 @@
 import AppKit
 
+/// 中身を上端から並べるための枠。
+///
+/// `NSClipView` は既定で反転していないので原点が左下にあり、中身が枠より短いと下に沈む。
+/// 反転させると上端が原点になり、短いうちは上から並び、長くなればそのまま伸びる。
+final class TopAlignedClipView: NSClipView {
+    override var isFlipped: Bool { true }
+}
+
 /// ルールの編集画面。アプリ単位で、扱いと保持時間と時間切れの行き先を決める。
 /// 正規表現はまだ入れない（SPEC.md「振り分けルール」）。
 final class RulesWindowController: NSWindowController {
@@ -57,6 +65,9 @@ final class RulesWindowController: NSWindowController {
         stack.translatesAutoresizingMaskIntoConstraints = false
 
         let scroll = NSScrollView()
+        // 既定の NSClipView は原点が左下にあるため、中身が枠より短いと下端に沈み、
+        // 上に空白が開く。上から並べるには原点のほうを直す（SPEC.md「画面を組むときの落とし穴」）
+        scroll.contentView = TopAlignedClipView()
         scroll.documentView = stack
         scroll.hasVerticalScroller = true
         scroll.drawsBackground = false
@@ -93,6 +104,10 @@ final class RulesWindowController: NSWindowController {
             scroll.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
             scroll.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -16),
             stack.widthAnchor.constraint(equalTo: scroll.widthAnchor),
+            // 枠を反転させただけでは足りない。中身の上端を枠の上端に留めておかないと、
+            // 中身が短い間は下に沈んだままになる。下端は縛らない。伸びる先を塞ぐことになる
+            stack.topAnchor.constraint(equalTo: scroll.contentView.topAnchor),
+            stack.leadingAnchor.constraint(equalTo: scroll.contentView.leadingAnchor),
         ])
     }
 
