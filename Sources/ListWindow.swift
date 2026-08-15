@@ -10,6 +10,25 @@ final class KeyTableView: NSTableView {
     }
 }
 
+/// 指を乗せている間だけ、中の部品を見せる行。
+///
+/// 隠すと幅が動いて落ち着かないので、透明にして場所は取らせたままにする
+final class HoverRevealView: NSStackView {
+    weak var revealed: NSView?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect],
+            owner: self))
+    }
+
+    override func mouseEntered(with event: NSEvent) { revealed?.alphaValue = 1 }
+    override func mouseExited(with event: NSEvent) { revealed?.alphaValue = 0 }
+}
+
 /// 選択の帯を角丸にする。左右に余白を取って、窓の縁まで届かせない
 final class RoundedRowView: NSTableRowView {
     override func drawSelection(in dirtyRect: NSRect) {
@@ -119,7 +138,9 @@ final class ListWindowController: NSWindowController {
         table.dataSource = self
         table.delegate = self
         table.target = self
-        table.doubleAction = #selector(openSelected)
+        // 一段目のクリックで開く。ダブルクリックは気付ける見た目をしていなかった
+        table.target = self
+        table.action = #selector(rowClicked)
         table.controller = self
 
         let scroll = NSScrollView()
@@ -263,8 +284,18 @@ final class ListWindowController: NSWindowController {
         }
     }
 
+    /// マウスで押された行を開く。一段目のクリックで飛ぶ（SPEC.md「既読は一覧から消えること」）
+    @objc private func rowClicked() {
+        guard let item = item(at: table.clickedRow) else { return }
+        open(item)
+    }
+
     @objc func openSelected() {
         guard let item = item(at: table.selectedRow) else { return }
+        open(item)
+    }
+
+    private func open(_ item: NonjaNotification) {
         state.clicked.insert(item.uuid)
         retire(item)
         state.save()
@@ -281,9 +312,20 @@ final class ListWindowController: NSWindowController {
         state.read.insert(item.uuid)
     }
 
+    /// 行に出したボタンから既読にする。Delete と同じ扱いで、元アプリへは飛ばない
+    @objc private func readRow(_ sender: NSButton) {
+        guard let uuid = sender.identifier?.rawValue,
+              let item = inbox.first(where: { $0.uuid == uuid }) else { return }
+        retireAndDrop(item)
+    }
+
     /// 手で既読にする。ルールの時間切れと同じ扱いにする
     private func retireSelected() {
         guard let item = item(at: table.selectedRow) else { return }
+        retireAndDrop(item)
+    }
+
+    private func retireAndDrop(_ item: NonjaNotification) {
         retire(item)
         state.save()
         inbox.removeAll { $0.uuid == item.uuid }
@@ -359,12 +401,15 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             return stack
 
         case .item(let item):
-            return cell(bundleID: item.bundleID, when: item.deliveredAt, text: item.oneLine)
+            return cell(item)
 
         }
     }
 
-    private func cell(bundleID: String, when: Date, text: String) -> NSView {
+    private func cell(_ item: NonjaNotification) -> NSView {
+        let bundleID = item.bundleID
+        let when = item.deliveredAt
+        let text = item.oneLine
         let icon = NSImageView(image: AppNames.icon(for: bundleID))
         icon.imageScaling = .scaleProportionallyUpOrDown
         icon.widthAnchor.constraint(equalToConstant: 26).isActive = true
@@ -385,11 +430,19 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         lines.alignment = .leading
         lines.spacing = 3
 
-        let row = NSStackView(views: [icon, lines])
+        let spacer = NSView()
+        spacer.setContentHuggingPriority(.init(1), for: .horizontal)
+
+        // 指を乗せた行にだけ出す。休んでいる間は透明で、場所だけ取っている
+        let read = smallButton("既読", #selector(readRow(_:)), item.uuid)
+        read.alphaValue = 0
+
+        let row = HoverRevealView(views: [icon, lines, spacer, read])
         row.orientation = .horizontal
         row.alignment = .top
         row.spacing = 10
         row.edgeInsets = NSEdgeInsets(top: 8, left: 16, bottom: 8, right: 14)
+        row.revealed = read
         return row
     }
 
