@@ -364,6 +364,18 @@ final class ListWindowController: NSWindowController {
 
     // MARK: - 束ごとの操作
 
+    /// そのアプリを出さなくする。仕組みは振り分けルールの「自動で既読」
+    /// （SPEC.md「アプリ単位で止める」）。戻すのは設定から
+    @objc private func muteGroup(_ sender: NSButton) {
+        guard let bundleID = sender.identifier?.rawValue else { return }
+        state.settings.rules.removeAll { $0.bundleID == bundleID }
+        state.settings.rules.append(
+            Rule(bundleID: bundleID, action: .mute, holdMinutes: 60))
+        state.save()
+        reload()
+        onChange?()
+    }
+
     /// 束ごと既読にする。既読＝一覧から消える。元の通知は通知センターに残る
     @objc private func readGroup(_ sender: NSButton) {
         guard let bundleID = sender.identifier?.rawValue else { return }
@@ -409,7 +421,12 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             // 行のボタンと同じ言葉にしない。どちらが一件でどちらが全部か読めなくなる
             let readAll = smallButton("すべて既読", #selector(readGroup(_:)), bundleID)
 
-            let stack = NSStackView(views: [label, spacer, readAll])
+            // 止めるのは滅多に押さない操作なので、指を乗せた見出しにだけ出す
+            let mute = smallButton("止める", #selector(muteGroup(_:)), bundleID)
+            mute.alphaValue = 0
+
+            let stack = HoverRevealView(views: [label, spacer, mute, readAll])
+            stack.revealed = mute
             stack.orientation = .horizontal
             stack.alignment = .centerY
             stack.spacing = 6
@@ -422,7 +439,7 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         }
     }
 
-    private func cell(_ item: NonjaNotification) -> NSView {
+    private func cell(_ item: NonjaNotification) -> HoverRevealView {
         let bundleID = item.bundleID
         let when = item.deliveredAt
         let text = item.oneLine
@@ -460,10 +477,14 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         row.orientation = .horizontal
         row.alignment = .top
         row.spacing = 10
-        row.edgeInsets = NSEdgeInsets(top: 8, left: 16, bottom: 8, right: 14)
+        row.edgeInsets = NSEdgeInsets(top: Self.rowPadding, left: 16,
+                                      bottom: Self.rowPadding, right: 14)
         row.revealed = read
         return row
     }
+
+    /// 行の中身の上下に置く余白。高さの計算と行の組み立てで同じ値を使う
+    private static let rowPadding: CGFloat = 8
 
     /// 本文の行数を抑える。
     ///
@@ -494,7 +515,10 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
             let view = cell(item)
             view.setFrameSize(NSSize(width: width, height: 0))
             view.layoutSubtreeIfNeeded()
-            let height = max(44, view.fittingSize.height)
+            // 外側の `fittingSize` は数 pt 足りず、その不足が下の余白だけを削る。
+            // 中身の高さを取って、上下の余白は自分で足す
+            let content = view.arrangedSubviews.map(\.fittingSize.height).max() ?? 0
+            let height = max(44, content + Self.rowPadding * 2)
             heights[key] = height
             return height
         }
