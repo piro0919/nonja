@@ -70,8 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         listWindow = ListWindowController(state: state)
-        settingsWindow = SettingsWindowController(state: state)
-        settingsWindow.onRestore = { [weak self] in self?.refresh() }
+        settingsWindow = SettingsWindowController()
         listWindow.onOpenSettings = { [weak self] in self?.showSettings() }
         // 窓の中で片付けたら、メニューバーの数も合わせる
         listWindow.onChange = { [weak self] in self?.showPresence() }
