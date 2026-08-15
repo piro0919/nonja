@@ -51,8 +51,6 @@
     ]
   },
   "screens": {
-    "title": "The windows",
-    "lead": "Click the mark in the menu bar and the list opens directly beneath it, sized to whatever is in it.",
     "list": "The inbox, bundled by app",
     "settings": "Settings, which for now is launch at login"
   },
