@@ -31,11 +31,7 @@
         "title": "Tells you only whether",
         "body": "A filled mark means something is waiting, an outline means nothing is. No count, so there is no number climbing at the edge of your vision."
       }
-    ],
-    "marks": {
-      "filled": "Something waiting",
-      "empty": "Nothing waiting"
-    }
+    ]
   },
   "screens": {
     "list": "The mark in the menu bar, with the inbox open beneath it"

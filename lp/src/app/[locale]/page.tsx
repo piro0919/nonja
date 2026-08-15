@@ -77,27 +77,10 @@ export default async function Page({ params }: PageProps) {
       {/* することは4つ。枠で囲まず、赤い罫だけで区切る */}
       <section className="px-6 py-20">
         <div className="mx-auto grid max-w-5xl gap-x-12 gap-y-10 sm:grid-cols-2">
-          {features.map((item, index) => (
+          {features.map((item) => (
             <div className="border-signal border-l-2 pl-5" key={item.title}>
               <h2 className="font-bold text-xl">{item.title}</h2>
               <p className="mt-3 text-ink/70 leading-relaxed">{item.body}</p>
-              {/* 印の話は、二つ並べたほうが文章より早い。アプリと同じコードで描いた絵 */}
-              {index === 3 ? (
-                <div className="mt-5 flex items-center gap-8">
-                  {(["filled", "empty"] as const).map((state) => (
-                    <div className="flex items-center gap-2.5" key={state}>
-                      <Image
-                        alt=""
-                        className="size-6"
-                        height={96}
-                        src={`/mark-${state}.png`}
-                        width={96}
-                      />
-                      <span className="text-ink/60 text-sm">{t(`features.marks.${state}`)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
             </div>
           ))}
         </div>
