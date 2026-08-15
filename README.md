@@ -35,10 +35,12 @@ route in macOS Sequoia. System Settings is the way now.
   hard to read in the first place.
 - **Jumps to the source.** Clicking a row presses the real notification, so you land
   wherever that app meant to take you.
-- **Clears itself, once you ask it to.** Add a rule for an app and its notifications
-  are held for a while, then dropped if you never touched them. Nothing expires until
-  you add that rule — a fresh install keeps everything, on purpose. Dropping a
-  notification only removes it from this inbox; the original stays in Notification Center.
+- **Clears itself, once you ask it to.** Give an app a rule and its notifications are
+  held for a while, then dropped if you never touched them. Nothing expires until that
+  rule exists — a fresh install keeps everything, on purpose. Dropping a notification
+  only removes it from this inbox; the original stays in Notification Center.
+  Rules live in `~/Library/Application Support/Nonja/state.json`; the settings window
+  is only the launch-at-login switch for now.
 - **Shows no numbers.** A bell that is filled means something is waiting. That is the
   whole status display. Whether it is five or five hundred does not change what you
   are going to do about it.
@@ -62,7 +64,7 @@ the Notification Center database.
 | `Sources/Engine.swift` | Applies the rules and decides what belongs in the inbox |
 | `Sources/Opener.swift` | Finds the real notification by UUID and presses it |
 | `Sources/ListWindow.swift` | The list — grouping, filtering, per-group actions |
-| `Sources/RulesWindow.swift` | Settings: rules, confirm basis, launch at login |
+| `Sources/SettingsWindow.swift` | Settings, which for now is launch at login and nothing else |
 | `Sources/Mark.swift` | Draws the menu bar mark, filled or outlined |
 | `Sources/State.swift` | What has been dealt with, stored as JSON |
 | `Sources/Updater.swift` | Sparkle. Checks once at launch, speaks only when there is an update |

@@ -37,6 +37,10 @@ final class ListWindowController: NSWindowController {
     private let table = KeyTableView()
     private let search = NSSearchField()
     private let status = NSTextField(labelWithString: "")
+    /// 状態表示は平常時に文字を持たない。畳めるよう、関わる制約を持っておく
+    private var statusHeight: NSLayoutConstraint!
+    private var statusGap: NSLayoutConstraint!
+    private var statusBottom: NSLayoutConstraint!
     private let state: State
 
     private var inbox: [NonjaNotification] = []
@@ -122,7 +126,7 @@ final class ListWindowController: NSWindowController {
         scroll.documentView = table
         scroll.hasVerticalScroller = true
         scroll.drawsBackground = false
-        // 最後の行が状態表示に貼り付かないよう、下に余白を持たせる
+        // 最後の行を窓の縁に貼り付かせない。状態表示は平常時に畳まれていて、間に何も入らない
         scroll.automaticallyAdjustsContentInsets = false
         scroll.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 8, right: 0)
         scroll.translatesAutoresizingMaskIntoConstraints = false
@@ -139,6 +143,9 @@ final class ListWindowController: NSWindowController {
         content.addSubview(gear)
         content.addSubview(scroll)
         content.addSubview(status)
+        statusGap = scroll.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -6)
+        statusBottom = status.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -10)
+        statusHeight = status.heightAnchor.constraint(equalToConstant: 0)
         NSLayoutConstraint.activate([
             search.topAnchor.constraint(equalTo: content.topAnchor, constant: 38),
             search.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 14),
@@ -149,11 +156,21 @@ final class ListWindowController: NSWindowController {
             scroll.topAnchor.constraint(equalTo: search.bottomAnchor, constant: 6),
             scroll.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            scroll.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -6),
+            statusGap,
             status.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 14),
             status.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -14),
-            status.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -10),
+            statusBottom,
+            statusHeight,
         ])
+    }
+
+    /// 平常時は文字を持たないので、場所ごと畳む。
+    /// 空の文字欄でも高さは残るため、隠すだけでは下に余白が残る
+    private func collapseStatus(_ collapsed: Bool) {
+        // 高さは外して本来の大きさに戻す。定数で入れ直すと複数行のエラーが切れる
+        statusHeight.isActive = collapsed
+        statusGap.constant = collapsed ? 0 : -6
+        statusBottom.constant = collapsed ? 0 : -10
     }
 
     // MARK: - 読み込み
@@ -207,12 +224,14 @@ final class ListWindowController: NSWindowController {
         if let error {
             status.stringValue = error
             status.textColor = .systemRed
+            collapseStatus(false)
             return
         }
         // 平常時は何も言わない。一覧を見れば有無は分かる（SPEC.md「件数は出さない」）。
         // 場所だけ残すのは、読めなくなったときの赤字の行き先として要るため
         status.stringValue = ""
         status.textColor = .secondaryLabelColor
+        collapseStatus(true)
     }
 
     // MARK: - 操作
