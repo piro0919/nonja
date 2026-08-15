@@ -14,6 +14,8 @@ real notification would have taken you.
 macOS 14+. No Xcode needed: `./build.sh` compiles with the Swift that ships with
 the Command Line Tools.
 
+There is a page for it at [nonja.kkweb.io](https://nonja.kkweb.io).
+
 ## Installing
 
 Download the DMG from [Releases](https://github.com/piro0919/nonja/releases/latest)
@@ -35,15 +37,17 @@ route in macOS Sequoia. System Settings is the way now.
   hard to read in the first place.
 - **Jumps to the source.** Clicking a row presses the real notification, so you land
   wherever that app meant to take you.
-- **Clears itself, once you ask it to.** Give an app a rule and its notifications are
-  held for a while, then dropped if you never touched them. Nothing expires until that
-  rule exists — a fresh install keeps everything, on purpose. Dropping a notification
-  only removes it from this inbox; the original stays in Notification Center.
-  Rules live in `~/Library/Application Support/Nonja/state.json`; the settings window
-  is only the launch-at-login switch for now.
-- **Shows no numbers.** A filled shuriken means something is waiting. That is the
-  whole status display. Whether it is five or five hundred does not change what you
-  are going to do about it.
+- **Clears a whole app at once.** Each group's heading clears that app — here and in
+  Notification Center, since macOS only exposes an app's notifications as one stack.
+  Clearing a single row, or pressing Delete, clears it here only.
+- **Expires what you never touched, once you ask it to.** Give an app a rule and its
+  notifications are held for a while, then dropped. Nothing expires until that rule
+  exists — a fresh install keeps everything, on purpose. Rules live in
+  `~/Library/Application Support/Nonja/state.json`; the settings window holds the
+  launch-at-login switch and the update check, and nothing else.
+- **Shows no numbers.** A filled shuriken means something is waiting, an outline means
+  nothing is. That is the whole status display — whether it is five or five hundred does
+  not change what you are going to do about it. The mark turns once when something lands.
 
 ## Permissions
 
@@ -53,8 +57,11 @@ route in macOS Sequoia. System Settings is the way now.
 | Accessibility | Pressing the real notification so the app opens |
 
 Both are granted in System Settings under Privacy & Security. Nonja checks on
-launch and points you at the right pane if either is missing. It never writes to
-the Notification Center database.
+launch and points you at the right pane if either is missing.
+
+It never writes to the Notification Center database — it opens it read-only. When a
+group is cleared, macOS is asked to clear it through the notification's own close
+action, which briefly opens Notification Center.
 
 ## Shape of the thing
 
@@ -62,9 +69,9 @@ the Notification Center database.
 | --- | --- |
 | `Sources/Store.swift` | Reads the Notification Center database, decodes each payload |
 | `Sources/Engine.swift` | Applies the rules and decides what belongs in the inbox |
-| `Sources/Opener.swift` | Finds the real notification by UUID and presses it |
-| `Sources/ListWindow.swift` | The list — grouping, filtering, per-group actions |
-| `Sources/SettingsWindow.swift` | Settings, which for now is launch at login and nothing else |
+| `Sources/Opener.swift` | Finds the real notification by UUID, presses it, clears a group |
+| `Sources/ListWindow.swift` | The list — grouping, row and group actions, sizing itself |
+| `Sources/SettingsWindow.swift` | Settings: launch at login, and the update check |
 | `Sources/Mark.swift` | Draws the menu bar mark, filled or outlined |
 | `Sources/State.swift` | What has been dealt with, stored as JSON |
 | `Sources/Updater.swift` | Sparkle. Checks once at launch, speaks only when there is an update |
@@ -83,6 +90,14 @@ NONJA_VERSION=99.0.0 ./build.sh          # same, but Sparkle won't replace it (s
 
 `./release.sh <version>` builds, runs the self test, packages a DMG and a zip,
 signs the appcast, and pushes a GitHub release.
+
+The landing page lives in `lp/`, a pnpm workspace of its own:
+
+```sh
+pnpm install
+pnpm lp:dev     # localhost:3000
+pnpm lp:build
+```
 
 Development builds are signed with a self-signed certificate. Ad-hoc signing
 changes identity on every build, and macOS drops both permissions each time.
