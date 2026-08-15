@@ -68,6 +68,8 @@ final class ListWindowController: NSWindowController {
     }
 
     private let table = KeyTableView()
+    /// 空のときだけ出す一行。窓が小さく畳まれるので、無言だと窓が壊れて見える
+    private let empty = NSTextField(labelWithString: "通知はありません")
     private let status = NSTextField(labelWithString: "")
     /// 測った行の高さ。鍵は uuid と幅
     private var heights: [String: CGFloat] = [:]
@@ -177,8 +179,13 @@ final class ListWindowController: NSWindowController {
         gear.contentTintColor = .secondaryLabelColor
         gear.translatesAutoresizingMaskIntoConstraints = false
 
+        empty.font = .systemFont(ofSize: 12)
+        empty.textColor = .tertiaryLabelColor
+        empty.translatesAutoresizingMaskIntoConstraints = false
+
         content.addSubview(gear)
         content.addSubview(scroll)
+        content.addSubview(empty)
         content.addSubview(status)
         statusGap = scroll.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -6)
         statusBottom = status.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -10)
@@ -191,6 +198,8 @@ final class ListWindowController: NSWindowController {
             scroll.topAnchor.constraint(equalTo: gear.bottomAnchor, constant: 8),
             scroll.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            empty.centerXAnchor.constraint(equalTo: content.centerXAnchor),
+            empty.centerYAnchor.constraint(equalTo: scroll.centerYAnchor),
             statusGap,
             status.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 14),
             status.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -14),
@@ -248,10 +257,31 @@ final class ListWindowController: NSWindowController {
             rows.append(contentsOf: items.map { Row.item($0) })
         }
         table.reloadData()
+        empty.isHidden = !rows.isEmpty
+        fitHeight()
         updateHover()
         focusTable()
         // 組み直したら必ず先頭に戻す。前の位置に留まると、どこを見ているか分からなくなる
         if !rows.isEmpty { table.scrollRowToVisible(0) }
+    }
+
+    /// 窓の高さを中身に合わせる（SPEC.md「窓の高さは中身に合わせる」）。
+    ///
+    /// **上辺は動かさない。** メニューバーの印の真下に出しているので、
+    /// 上が動くと印から離れる。伸び縮みは下辺だけでする
+    private func fitHeight() {
+        guard let window else { return }
+        let content = rows.indices.reduce(into: CGFloat(0)) { total, row in
+            total += self.tableView(table, heightOfRow: row) + table.intercellSpacing.height
+        }
+        let chrome = window.frame.height - table.enclosingScrollView!.frame.height
+        let wanted = min(max(content + chrome + Self.scrollBottomInset, Self.minHeight), Self.maxHeight)
+
+        var frame = window.frame
+        guard abs(frame.height - wanted) > 1 else { return }
+        frame.origin.y += frame.height - wanted
+        frame.size.height = wanted
+        window.setFrame(frame, display: true)
     }
 
     /// 開いた直後は何も選ばない。
@@ -500,6 +530,13 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
 
     /// 行の中身の上下に置く余白。高さの計算と行の組み立てで同じ値を使う
     private static let rowPadding: CGFloat = 8
+
+    // 窓の高さの上限と下限。上限は画面を覆わない大きさ、
+    // 下限は空でも窓だと分かる大きさ。中身がこの間にあるときは中身に合わせる
+    private static let maxHeight: CGFloat = 580
+    private static let minHeight: CGFloat = 140
+    /// 最後の行を窓の縁に貼り付かせないための余白。`scroll.contentInsets` と同じ値
+    private static let scrollBottomInset: CGFloat = 8
 
     /// 本文の行数を抑える。
     ///
