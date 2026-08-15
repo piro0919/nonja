@@ -71,8 +71,6 @@ final class ListWindowController: NSWindowController {
     private let status = NSTextField(labelWithString: "")
     /// 測った行の高さ。鍵は uuid と幅
     private var heights: [String: CGFloat] = [:]
-    /// 通知センターの読み直しをまとめるための待ち時間
-    private var reloadTimer: Timer?
     /// 状態表示は平常時に文字を持たない。畳めるよう、関わる制約を持っておく
     private var statusHeight: NSLayoutConstraint!
     private var statusGap: NSLayoutConstraint!
@@ -343,35 +341,14 @@ final class ListWindowController: NSWindowController {
         onChange?()
     }
 
+    /// 一件だけ片付ける。**通知センターには触らない。**
+    ///
+    /// macOS は同じアプリの通知を束ねて一つの要素としてしか見せない。
+    /// 束を閉じるとそのアプリ全部が消えるので、一件の既読では手を出せない
+    /// （SPEC.md「通知センター側も消す」）
     private func retire(_ item: NonjaNotification) {
         state.retired.insert(item.uuid)
         state.read.insert(item.uuid)
-        forget(item)
-    }
-
-    /// 通知センター側からも消す（SPEC.md「通知センター側も消す」）。
-    ///
-    /// **失敗しても一覧の操作は続ける。** 書き込みは唯一 Apple の非公開の仕組みに
-    /// 手を入れる場所なので、ここで止まると Nonja そのものが使えなくなる。
-    /// 消せなかったときは通知センターに残るだけで、こちらの表示は正しい
-    private func forget(_ item: NonjaNotification) {
-        guard let uuid = UUID(uuidString: item.uuid) else { return }
-        do {
-            try Forget.forget(uuid: uuid)
-            scheduleReload()
-        } catch {
-            nonjaLog.error("通知センターから消せませんでした: \(error.localizedDescription, privacy: .public)")
-        }
-    }
-
-    /// 常駐プロセスの再起動はまとめる。
-    ///
-    /// 1件ごとに落とすと「すべて既読」で連続再起動になる。最後の削除から間を置いて一度だけ落とす
-    private func scheduleReload() {
-        reloadTimer?.invalidate()
-        reloadTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { _ in
-            Forget.reload()
-        }
     }
 
     /// 行に出したボタンから既読にする。Delete と同じ扱いで、元アプリへは飛ばない
@@ -408,11 +385,16 @@ final class ListWindowController: NSWindowController {
         NSWorkspace.shared.open(url)
     }
 
-    /// 束ごと既読にする。既読＝一覧から消える。元の通知は通知センターに残る
+    /// 束ごと既読にする。**通知センター側もそのアプリだけ消す。**
+    ///
+    /// macOS が見せるのはアプリ単位の束だけなので、この操作だけが向こうの単位と一致する
+    /// （SPEC.md「通知センター側も消す」）
     @objc private func readGroup(_ sender: NSButton) {
         guard let bundleID = sender.identifier?.rawValue else { return }
+        let uuids = inbox.filter { $0.bundleID == bundleID }.map(\.uuid)
         for item in inbox where item.bundleID == bundleID { retire(item) }
         state.save()
+        Opener.dismissGroup(anyOf: uuids)
         inbox.removeAll { $0.bundleID == bundleID }
         rebuildRows()
         updateStatus(error: nil)

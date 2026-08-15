@@ -25,12 +25,6 @@ enum Nonja {
             press(uuid: CommandLine.arguments[index + 1])
             return
         }
-        // 通知センター側からも消す口。唯一の書き込みなので、今は明示的に呼んだときだけ動く
-        if let index = CommandLine.arguments.firstIndex(of: "--forget"),
-           index + 1 < CommandLine.arguments.count {
-            forget(uuid: CommandLine.arguments[index + 1])
-            return
-        }
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate
@@ -47,23 +41,6 @@ enum Nonja {
             print("押せました: \(uuid)")
         } else {
             print("通知センターに見つかりませんでした: \(uuid)")
-            exit(1)
-        }
-    }
-
-    /// 通知センター側からも消す。今は画面からは呼ばれない
-    private static func forget(uuid: String) {
-        guard let target = UUID(uuidString: uuid) else {
-            print("uuid の形になっていません: \(uuid)")
-            exit(1)
-        }
-        do {
-            try Forget.forget(uuid: target)
-            Forget.reload()
-            print("消しました: \(uuid)")
-            print("控えは db.nonja-backup に置いてあります。戻すときはこれを db に上書きしてください。")
-        } catch {
-            print("消せませんでした: \(error)")
             exit(1)
         }
     }

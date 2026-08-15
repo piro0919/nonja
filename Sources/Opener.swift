@@ -48,6 +48,53 @@ enum Opener {
         return false
     }
 
+    /// そのアプリの通知を通知センターからも消す。**macOS 自身に消させる**
+    /// （SPEC.md「通知センター側も消す」）。
+    ///
+    /// **データベースは書き換えない。** 一度やってみたところ、macOS に丸ごと壊れていると
+    /// 判定されて捨てられ、通知の履歴を失った。消すのは必ず OS の操作を通す。
+    ///
+    /// **アプリ単位でしか消せない。** macOS は同じアプリの通知を束ねて一つの要素として見せ、
+    /// 束の中身は開いても個別に現れない。束に消す操作を送ると、そのアプリ全部が消える。
+    /// だから「すべて既読」からしか呼ばない。
+    ///
+    /// 束の識別子は一番新しい通知のものになる。どれが先頭か分からないので、
+    /// 渡された uuid を順に当てて、最初に見つかったものを使う
+    @discardableResult
+    static func dismissGroup(anyOf uuids: [String]) -> Bool {
+        guard !uuids.isEmpty, AXIsProcessTrusted() else { return false }
+        guard let app = NSRunningApplication.runningApplications(
+                withBundleIdentifier: "com.apple.notificationcenterui").first else { return false }
+
+        let axApp = AXUIElementCreateApplication(app.processIdentifier)
+        openNotificationCenter()
+        defer { closeNotificationCenter() }
+
+        // 開くまでに間があるので待つ
+        for _ in 0..<40 {
+            for uuid in uuids {
+                guard let target = find(uuid: uuid, in: axApp) else { continue }
+                guard let action = clearAction(of: target) else { continue }
+                let ok = AXUIElementPerformAction(target, action as CFString) == .success
+                nonjaLog.info("通知センターの束を消しました: \(ok, privacy: .public)")
+                return ok
+            }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+        nonjaLog.info("通知センターに束が見つかりませんでした")
+        return false
+    }
+
+    /// 束を消す操作。束ねられているときは「すべて消去」、1件だけのときは「閉じる」になる。
+    /// どちらも**そのアプリの通知が消える**という意味では同じ
+    private static func clearAction(of element: AXUIElement) -> String? {
+        var names: CFArray?
+        guard AXUIElementCopyActionNames(element, &names) == .success,
+              let list = names as? [String] else { return nil }
+        return list.first { $0.contains("すべて消去") }
+            ?? list.first { $0.contains("閉じる") || $0.lowercased().contains("close") }
+    }
+
     private static func find(uuid: String, in root: AXUIElement, depth: Int = 0) -> AXUIElement? {
         if depth > 12 { return nil }
         var value: AnyObject?
