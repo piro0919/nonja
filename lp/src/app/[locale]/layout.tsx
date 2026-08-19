@@ -33,18 +33,25 @@ export async function generateMetadata({
   return {
     description: t("description"),
     icons: { icon: "/icon.png" },
+    alternates: {
+      canonical: locale === routing.defaultLocale ? "/" : `/${locale}`,
+      languages: Object.fromEntries(
+        routing.locales.map((one) => [one, one === routing.defaultLocale ? "/" : `/${one}`]),
+      ),
+    },
     metadataBase: new URL("https://nonja.kkweb.io"),
     openGraph: {
       description: t("description"),
-      images: ["/icon.png"],
+      images: [{ alt: t("title"), height: 630, url: "/ogp.png", width: 1200 }],
       title: t("title"),
       type: "website",
+      url: locale === routing.defaultLocale ? "/" : `/${locale}`,
     },
     title: t("title"),
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       description: t("description"),
-      images: ["/icon.png"],
+      images: ["/ogp.png"],
       title: t("title"),
     },
   };
