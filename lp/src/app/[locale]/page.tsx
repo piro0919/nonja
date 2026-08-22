@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { LanguageSwitch } from "./language-switch";
 
 const REPO = "https://github.com/piro0919/nonja";
@@ -90,6 +91,10 @@ export default async function Page({ params }: PageProps) {
         <a className="underline" href={REPO}>
           {t("footer.source")}
         </a>
+        <span className="px-2">·</span>
+        <Link className="underline" href="/privacy">
+          {t("footer.privacy")}
+        </Link>
       </footer>
     </>
   );

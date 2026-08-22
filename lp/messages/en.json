@@ -37,10 +37,43 @@
     "list": "The mark in the menu bar, with the inbox open beneath it"
   },
   "footer": {
-    "source": "See it on GitHub"
+    "source": "See it on GitHub",
+    "privacy": "Privacy"
   },
   "language": {
     "en": "EN",
     "ja": "日本語"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updated": "Last updated: August 22, 2026",
+    "intro": "Nonja reads your notifications, so it seems fair to be specific about what happens to them. Short version: they stay on your Mac. There is no server behind this app, no analytics, and no account.",
+    "sections": [
+      {
+        "title": "Your notifications never leave the Mac",
+        "body": "Nonja opens the Notification Center database that macOS already keeps on your machine, and it opens it read-only — it can look, and it cannot change anything there. What it reads is held in memory to build the list you see in the menu bar. None of it is uploaded, and there is nowhere for it to be uploaded to."
+      },
+      {
+        "title": "Why it asks to control Notification Center",
+        "body": "Clicking an item in Nonja takes you to the app the notification came from. Doing that means driving Notification Center on your behalf, which macOS treats as automation and asks you to approve on first use. The permission is used for that and nothing else."
+      },
+      {
+        "title": "Update checks go to GitHub",
+        "body": "Nonja checks for a new version once when it starts, and never on a timer — an app meant to reduce interruptions shouldn't create its own. The check fetches a small file from its GitHub Releases page, so GitHub sees the request the way it sees any download, including your IP address. Nothing about your notifications is included. It is a plain file download."
+      },
+      {
+        "title": "No analytics, ever",
+        "body": "There is no crash reporting, no usage tracking, no unique identifier, and no third-party SDK of any kind in the app."
+      },
+      {
+        "title": "You can check all of this",
+        "body": "Nonja is open source under the MIT license, so none of the above has to be taken on trust. Read the source, or open an issue if something looks wrong."
+      },
+      {
+        "title": "Changes",
+        "body": "If a future version starts doing something new with your data, this page gets updated before that version ships."
+      }
+    ],
+    "back": "Back to Nonja"
   }
 }
