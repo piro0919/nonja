@@ -42,7 +42,6 @@ export async function generateMetadata({
     metadataBase: new URL("https://nonja.kkweb.io"),
     openGraph: {
       description: t("description"),
-      images: [{ alt: t("title"), height: 630, url: "/ogp.png", width: 1200 }],
       title: t("title"),
       type: "website",
       url: locale === routing.defaultLocale ? "/" : `/${locale}`,
@@ -51,7 +50,6 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       description: t("description"),
-      images: ["/ogp.png"],
       title: t("title"),
     },
   };

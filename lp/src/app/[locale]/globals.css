@@ -1,13 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  /* アイコンの配色をそのまま持ってくる。左上の藍から右下の濃紺へ落ちる */
+  /* 静けさが芯なので、面は白に寄せる。藍はアイコンと印だけに残し、
+     朱は「溜まっている」印の一点にしか使わない */
   --color-indigo: #2b2c8c;
   --color-navy-deep: #12142e;
   --color-signal: #f03a20;
   --color-ink: #12142e;
-  --color-paper: #f5f3ef;
-  --color-line: #e2ded6;
+  --color-ink-2: #6b6d80;
+  --color-ink-3: #9a9bab;
+  --color-paper: #faf9f7;
+  --color-line: #e6e3dd;
 }
 
 html {
@@ -23,13 +26,14 @@ body {
   word-break: auto-phrase;
 }
 
-/* 見出しの帯。アイコンと同じ向きのグラデーション */
-.brand {
-  background: linear-gradient(135deg, var(--color-indigo) 0%, var(--color-navy-deep) 100%);
+::selection {
+  background: color-mix(in srgb, var(--color-indigo) 20%, transparent);
 }
 
-/* 背景に薄く敷く点。通知が一粒ずつ溜まっていく面なので、格子ではなく点にする */
-.dot-bg {
-  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
-  background-size: 22px 22px;
+/* 余白の端に置く注記。中央の列を邪魔しない位置に絶対で留める */
+.margin-note {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  line-height: 1.6;
+  text-transform: uppercase;
 }

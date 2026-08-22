@@ -19,83 +19,117 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <>
-      {/* 見出し。文章より先に、動いている実物を見せる */}
-      <header className="brand px-6 pt-8 pb-0 text-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image alt="" className="rounded-[24%]" height={32} src="/icon.png" width={32} />
-            <span className="font-bold text-lg tracking-tight">Nonja</span>
-          </div>
-          <LanguageSwitch />
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+        <div className="flex items-center gap-2.5">
+          <Image
+            alt=""
+            className="rounded-[24%]"
+            height={24}
+            src="/icon.png"
+            width={24}
+          />
+          <span className="font-bold text-sm tracking-tight">Nonja</span>
         </div>
+        <LanguageSwitch />
+      </header>
 
-        <div className="mx-auto mt-14 max-w-3xl text-center">
-          <h1 className="font-bold text-4xl leading-tight tracking-tight sm:text-5xl">
+      {/* 中央の細い一列に全部を積む。両脇の余白は空けたままにして、
+          端に小さな注記だけを置く */}
+      <main className="relative mx-auto max-w-6xl px-6">
+        <span className="margin-note absolute top-24 left-6 hidden text-ink-3 lg:block">
+          macOS
+          <br />
+          Menu bar
+        </span>
+        <span className="margin-note absolute top-24 right-6 hidden text-right text-ink-3 lg:block">
+          No banners
+          <br />
+          No badge count
+        </span>
+
+        <div className="mx-auto max-w-md py-16 sm:py-24">
+          <h1 className="text-balance text-center font-bold text-3xl leading-[1.4] tracking-tight">
             {t("hero.title")}
           </h1>
-          <p className="mt-5 text-lg text-white/85 leading-relaxed">{t("hero.tagline")}</p>
+          <p className="mt-6 text-center text-ink-2 text-sm leading-loose">
+            {t("hero.tagline")}
+          </p>
 
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+          {/* メニューバーの印。数字を出さないという話なので、点ひとつで済ませる */}
+          <div className="mt-12 flex justify-center">
+            <span className="size-2 rounded-full bg-signal" />
+          </div>
+
+          <div className="mt-12 space-y-5">
+            <Image
+              alt={t("screens.list")}
+              className="w-full border border-line"
+              height={640}
+              priority={true}
+              src="/menubar.png"
+              width={1120}
+            />
+            <Image
+              alt={t("screens.list")}
+              className="w-full border border-line"
+              height={530}
+              src="/list.png"
+              width={960}
+            />
+          </div>
+
+          <div className="mt-12 flex flex-col items-center gap-3">
             <a
-              className="rounded-full bg-white px-8 py-3.5 font-bold text-navy-deep transition hover:bg-white/90"
+              className="w-full bg-ink px-8 py-3.5 text-center font-bold text-paper text-sm transition hover:bg-indigo"
               href={DOWNLOAD}
             >
               {t("hero.download")}
             </a>
             <a
-              className="rounded-full border border-white/50 px-8 py-3.5 font-bold transition hover:bg-white/10"
+              className="w-full border border-line px-8 py-3.5 text-center font-bold text-sm transition hover:border-ink"
               href={REPO}
             >
               {t("hero.source")}
             </a>
           </div>
-          <p className="mt-4 text-sm text-white/60">{t("hero.note")}</p>
-          {/* 節ごと落としたが、これを知らずに落とすと最初の起動で詰まる */}
-          <p className="mt-2 text-sm text-white/60">
+          <p className="mt-5 text-center text-ink-3 text-xs leading-relaxed">
+            {t("hero.note")}
+            <br />
             {t("hero.firstRun")}
             <a
-              className="ml-2 underline underline-offset-2 transition hover:text-white"
+              className="ml-1.5 underline underline-offset-2 transition hover:text-ink"
               href={`${REPO}#installing`}
             >
               {t("hero.firstRunLink")}
             </a>
           </p>
-        </div>
 
-        {/* メニューバーの印と、その真下に開く窓。位置の関係ごと見せる */}
-        <div className="mx-auto mt-14 max-w-4xl">
-          <Image
-            alt={t("screens.list")}
-            className="w-full translate-y-px rounded-t-2xl"
-            height={470}
-            priority={true}
-            src="/hero.png"
-            width={820}
-          />
-        </div>
-      </header>
+          {/* することは4つ。列の中に積んで、罫だけで分ける */}
+          <h2 className="mt-24 text-ink-3 text-xs tracking-wider">
+            {t("features.title")}
+          </h2>
+          <dl className="mt-6 border-line border-t">
+            {features.map((item) => (
+              <div className="border-line border-b py-6" key={item.title}>
+                <dt className="font-bold text-base">{item.title}</dt>
+                <dd className="mt-2.5 text-ink-2 text-sm leading-relaxed">
+                  {item.body}
+                </dd>
+              </div>
+            ))}
+          </dl>
 
-      {/* することは4つ。枠で囲まず、赤い罫だけで区切る */}
-      <section className="px-6 py-20">
-        <div className="mx-auto grid max-w-5xl gap-x-12 gap-y-10 sm:grid-cols-2">
-          {features.map((item) => (
-            <div className="border-signal border-l-2 pl-5" key={item.title}>
-              <h2 className="font-bold text-xl">{item.title}</h2>
-              <p className="mt-3 text-ink/70 leading-relaxed">{item.body}</p>
-            </div>
-          ))}
+          <footer className="mt-16 pb-4 text-center text-ink-3 text-xs">
+            <a className="underline" href={REPO}>
+              {t("footer.source")}
+            </a>
+            <span className="px-2">·</span>
+            <Link className="underline" href="/privacy">
+              {t("footer.privacy")}
+            </Link>
+          </footer>
         </div>
-      </section>
-
-      <footer className="border-line border-t px-6 py-10 text-center text-ink/60 text-sm">
-        <a className="underline" href={REPO}>
-          {t("footer.source")}
-        </a>
-        <span className="px-2">·</span>
-        <Link className="underline" href="/privacy">
-          {t("footer.privacy")}
-        </Link>
-      </footer>
+      </main>
     </>
   );
 }
