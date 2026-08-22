@@ -48,7 +48,7 @@ export default async function Page({ params }: PageProps) {
         </span>
 
         <div className="mx-auto max-w-md py-16 sm:py-24">
-          <h1 className="text-balance text-center font-bold text-3xl leading-[1.4] tracking-tight">
+          <h1 className="text-balance text-center font-display font-bold text-3xl leading-[1.55] tracking-tight">
             {t("hero.title")}
           </h1>
           <p className="mt-6 text-center text-ink-2 text-sm leading-loose">
@@ -111,7 +111,7 @@ export default async function Page({ params }: PageProps) {
           <dl className="mt-6 border-line border-t">
             {features.map((item) => (
               <div className="border-line border-b py-6" key={item.title}>
-                <dt className="font-bold text-base">{item.title}</dt>
+                <dt className="font-display font-bold text-base">{item.title}</dt>
                 <dd className="mt-2.5 text-ink-2 text-sm leading-relaxed">
                   {item.body}
                 </dd>

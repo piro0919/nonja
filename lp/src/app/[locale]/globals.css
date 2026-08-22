@@ -11,6 +11,7 @@
   --color-ink-3: #9a9bab;
   --color-paper: #faf9f7;
   --color-line: #e6e3dd;
+  --font-display: var(--font-display);
 }
 
 html {
