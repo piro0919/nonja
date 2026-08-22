@@ -1,15 +1,17 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const alt = "Nonja";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const PAPER = "#faf9f7";
-const INK = "#12142e";
-const INK_2 = "#6b6d80";
-const INK_3 = "#9a9bab";
+/* 実際に出るのは kk-web の一覧で176px、X のカードで500px 前後。
+   その大きさで残るのはアイコンと名前と1行だけなので、それしか置かない。
+   地はアイコンと同じ生成り */
+const PAPER = "#f5f1ec";
+const INK = "#15173b";
 const SIGNAL = "#f03a20";
-const LINE = "#e6e3dd";
 
 export default async function OgImage({
   params,
@@ -18,10 +20,8 @@ export default async function OgImage({
 }): Promise<ImageResponse> {
   const { locale } = await params;
   const isJa = locale === "ja";
-
-  const rows = isJa
-    ? ["通知 / 15:00 から定例です", "通知 / レビュー依頼が届いています", "通知 / ビルドが通りました"]
-    : ["Notification / Standup at 15:00", "Notification / Review requested", "Notification / Build passed"];
+  const icon = await readFile(join(process.cwd(), "public/icon.png"));
+  const iconSrc = `data:image/png;base64,${icon.toString("base64")}`;
 
   return new ImageResponse(
     <div
@@ -29,92 +29,36 @@ export default async function OgImage({
         alignItems: "center",
         background: PAPER,
         display: "flex",
-        flexDirection: "column",
+        gap: 64,
         height: "100%",
-        justifyContent: "center",
-        position: "relative",
+        padding: "0 90px",
         width: "100%",
       }}
     >
-      <div
-        style={{
-          color: INK_3,
-          fontSize: 15,
-          left: 56,
-          letterSpacing: 3,
-          position: "absolute",
-          top: 52,
-        }}
-      >
-        MACOS · MENU BAR
-      </div>
-      <div
-        style={{
-          color: INK_3,
-          fontSize: 15,
-          letterSpacing: 3,
-          position: "absolute",
-          right: 56,
-          top: 52,
-        }}
-      >
-        NO BANNERS
-      </div>
-
-      {/* 溜まっているという印。これ以上は出さない */}
-      <div
-        style={{
-          background: SIGNAL,
-          borderRadius: 999,
-          height: 14,
-          width: 14,
-        }}
+      {/* biome-ignore lint/performance/noImgElement: next/image is not available in ImageResponse */}
+      <img
+        alt=""
+        height={300}
+        src={iconSrc}
+        style={{ borderRadius: 68 }}
+        width={300}
       />
-
-      <div
-        style={{
-          color: INK,
-          display: "flex",
-          flexDirection: "column",
-          fontSize: 46,
-          fontWeight: 700,
-          lineHeight: 1.4,
-          marginTop: 34,
-          textAlign: "center",
-        }}
-      >
-        {(isJa
-          ? ["macOS の通知を、静かに", "溜めておく受信箱です"]
-          : ["A quiet inbox for", "your macOS notifications"]
-        ).map((line) => (
-          <div key={line}>{line}</div>
-        ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          marginTop: 44,
-          width: 620,
-        }}
-      >
-        {rows.map((row, i) => (
-          <div
-            key={row}
-            style={{
-              alignItems: "center",
-              borderTop: `1px solid ${LINE}`,
-              color: INK_2,
-              display: "flex",
-              fontSize: 20,
-              opacity: 1 - i * 0.28,
-              padding: "16px 4px",
-            }}
-          >
-            {row}
-          </div>
-        ))}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            color: INK,
+            fontSize: 128,
+            fontWeight: 700,
+            letterSpacing: -3,
+          }}
+        >
+          Nonja
+        </div>
+        <div style={{ color: SIGNAL, display: "flex", fontSize: 38, marginTop: 18 }}>
+          {isJa
+            ? "通知を、静かに溜めておく受信箱"
+            : "A quiet inbox for your notifications"}
+        </div>
       </div>
     </div>,
     { ...size },
