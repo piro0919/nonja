@@ -60,10 +60,12 @@ export default async function Page({ params }: PageProps) {
             <span className="size-2 rounded-full bg-signal" />
           </div>
 
-          <div className="mt-12 space-y-5">
+          {/* 濃紺の面を一度だけ置く。アイコンの四角と同じ色で、
+              画面がその上に載っている形にする */}
+          <div className="mt-12 space-y-5 bg-ink p-5">
             <Image
               alt={t("screens.list")}
-              className="w-full border border-line"
+              className="w-full"
               height={640}
               priority={true}
               src="/menubar.png"
@@ -71,7 +73,7 @@ export default async function Page({ params }: PageProps) {
             />
             <Image
               alt={t("screens.list")}
-              className="w-full border border-line"
+              className="w-full"
               height={530}
               src="/list.png"
               width={960}
