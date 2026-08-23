@@ -62,7 +62,7 @@ export default async function Page({ params }: PageProps) {
 
           {/* 濃紺の面を一度だけ置く。アイコンの四角と同じ色で、
               画面がその上に載っている形にする */}
-          <div className="mt-12 space-y-5 bg-ink p-5">
+          <div className="mt-12 space-y-5 bg-indigo p-5">
             <Image
               alt={t("screens.list")}
               className="w-full"

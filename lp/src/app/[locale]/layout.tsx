@@ -1,6 +1,6 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
-import { Inter, Zen_Old_Mincho } from "next/font/google";
+import { Inter, Zen_Kaku_Gothic_New } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -15,15 +15,15 @@ const sans = Inter({
   variable: "--font-sans",
 });
 
-/* 見出しの書体。声を張らない道具なので、太らせずに明朝で置く。
+/* 見出しの書体。忍者の印象に明朝は合わないので角ゴシック。
    日本語は unicode-range で百件以上に割れるので preload は切る。
    切らないと使わない範囲まで先読みして 1ページで 1.5MB 取りに行く */
-const display = Zen_Old_Mincho({
+const display = Zen_Kaku_Gothic_New({
   display: "swap",
   preload: false,
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["400", "600"],
+  weight: ["500", "700"],
 });
 
 type LayoutProps = {

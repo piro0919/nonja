@@ -1,16 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  /* 色はアイコンから取る。生成りの地に濃紺、印の朱が一点。
-     静けさが芯なので、濃紺は面として一度だけ置く */
+  /* 色はアイコンから取る。忍者なので地は藍。覆面のクリームが文字、
+     朱は「溜まっている」印の一点だけに使う。
+     以前クリームを地にしていたのは、平らな面の画素数で色を選んでいたため。
+     アイコンの藍はグラデーションなので値が散り、顔の色が1位になっていた */
   --color-indigo: #2b2c8c;
   --color-navy-deep: #12142e;
   --color-signal: #f03a20;
-  --color-ink: #15173b;
-  --color-ink-2: #5c5e78;
-  --color-ink-3: #8e90a2;
-  --color-paper: #f5f1ec;
-  --color-line: #ded8cf;
+  --color-ink: #f2f0e9;
+  --color-ink-2: rgba(242, 240, 233, 0.62);
+  --color-ink-3: rgba(242, 240, 233, 0.38);
+  --color-paper: #191c47;
+  --color-line: rgba(242, 240, 233, 0.16);
   --font-display: var(--font-display);
 }
 
