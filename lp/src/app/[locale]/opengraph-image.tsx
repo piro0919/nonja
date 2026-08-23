@@ -27,16 +27,23 @@ export default async function OgImage({
 }): Promise<ImageResponse> {
   const { locale } = await params;
   const isJa = locale === "ja";
-  const icon = await readFile(join(process.cwd(), "public/icon.png"));
+  /* 見出しの書体はサイトと同じ Zen Old Mincho。使う文字だけに絞ったものを
+     同梱している。文言を変えたら assets/README.md の手順で作り直す */
+  const [icon, font] = await Promise.all([
+    readFile(join(process.cwd(), "public/icon.png")),
+    readFile(join(process.cwd(), "assets/ZenOldMincho-SemiBold-subset.ttf")),
+  ]);
   const iconSrc = `data:image/png;base64,${icon.toString("base64")}`;
 
   return new ImageResponse(
     <div
       style={{
         alignItems: "center",
+        flexDirection: "column",
+        justifyContent: "center",
         background: PAPER,
         display: "flex",
-        gap: 64,
+        gap: 32,
         height: "100%",
         padding: "0 90px",
         width: "100%",
@@ -50,7 +57,14 @@ export default async function OgImage({
         style={{ borderRadius: 68 }}
         width={300}
       />
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          alignItems: "center",
+          display: "flex",
+          flexDirection: "column",
+          textAlign: "center",
+        }}
+      >
         <div
           style={{
             color: INK,
@@ -68,6 +82,11 @@ export default async function OgImage({
         </div>
       </div>
     </div>,
-    { ...size },
+    {
+      ...size,
+      fonts: [
+        { data: font, name: "Zen Old Mincho", style: "normal", weight: 600 },
+      ],
+    },
   );
 }
