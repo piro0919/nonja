@@ -24,77 +24,49 @@ export default async function Page({ params }: PageProps) {
           <Image
             alt=""
             className="rounded-[24%]"
-            height={24}
+            height={26}
             src="/icon.png"
-            width={24}
+            width={26}
           />
           <span className="font-bold text-sm tracking-tight">Nonja</span>
         </div>
         <LanguageSwitch />
       </header>
 
-      {/* 中央の細い一列に全部を積む。両脇の余白は空けたままにして、
-          端に小さな注記だけを置く */}
-      <main className="relative mx-auto max-w-6xl px-6">
-        <span className="margin-note absolute top-24 left-6 hidden text-ink-3 lg:block">
-          macOS
-          <br />
-          Menu bar
-        </span>
-        <span className="margin-note absolute top-24 right-6 hidden text-right text-ink-3 lg:block">
-          No banners
-          <br />
-          No badge count
-        </span>
-
-        <div className="mx-auto max-w-md py-16 sm:py-24">
-          <h1 className="text-balance text-center font-display font-bold text-3xl leading-[1.55] tracking-tight">
+      {/* 入手までを最初の画面に収める。同種のメニューバー常駐アプリは
+          どれもボタンを一枚目に置いていて、Nonja だけ 900px 下にあった */}
+      <main className="mx-auto grid max-w-6xl gap-12 px-6 pt-8 pb-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-16 lg:pt-14">
+        <div className="min-w-0">
+          <Image
+            alt=""
+            className="rounded-[24%]"
+            height={92}
+            priority={true}
+            src="/icon.png"
+            width={92}
+          />
+          <h1 className="mt-7 text-balance font-display font-bold text-3xl leading-[1.4] tracking-tight sm:text-4xl">
             {t("hero.title")}
           </h1>
-          <p className="mt-6 text-center text-ink-2 text-sm leading-loose">
+          <p className="mt-6 max-w-md text-ink-2 leading-relaxed">
             {t("hero.tagline")}
           </p>
 
-          {/* メニューバーの印。数字を出さないという話なので、点ひとつで済ませる */}
-          <div className="mt-12 flex justify-center">
-            <span className="size-2 rounded-full bg-signal" />
-          </div>
-
-          {/* 濃紺の面を一度だけ置く。アイコンの四角と同じ色で、
-              画面がその上に載っている形にする */}
-          <div className="mt-12 space-y-5 bg-indigo p-5">
-            <Image
-              alt={t("screens.list")}
-              className="w-full"
-              height={640}
-              priority={true}
-              src="/menubar.png"
-              width={1120}
-            />
-            <Image
-              alt={t("screens.list")}
-              className="w-full"
-              height={530}
-              src="/list.png"
-              width={960}
-            />
-          </div>
-
-          <div className="mt-12 flex flex-col items-center gap-3">
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a
-              className="w-full bg-ink px-8 py-3.5 text-center font-bold text-paper text-sm transition hover:bg-indigo"
+              className="bg-ink px-8 py-3.5 text-center font-bold text-paper transition hover:bg-indigo"
               href={DOWNLOAD}
             >
               {t("hero.download")}
             </a>
             <a
-              className="w-full border border-line px-8 py-3.5 text-center font-bold text-sm transition hover:border-ink"
+              className="border border-line px-8 py-3.5 text-center font-bold transition hover:border-ink"
               href={REPO}
             >
               {t("hero.source")}
             </a>
           </div>
-          <p className="mt-5 text-center text-ink-3 text-xs leading-relaxed">
+          <p className="mt-5 text-ink-3 text-sm leading-relaxed">
             {t("hero.note")}
             <br />
             {t("hero.firstRun")}
@@ -105,33 +77,51 @@ export default async function Page({ params }: PageProps) {
               {t("hero.firstRunLink")}
             </a>
           </p>
+        </div>
 
-          {/* することは4つ。列の中に積んで、罫だけで分ける */}
-          <h2 className="mt-24 text-ink-3 text-xs tracking-wider">
+        {/* メニューバーの下に出る、という位置の関係ごと見せる。
+            同じ中身の一覧を2枚並べていたのをやめた */}
+        <div className="min-w-0">
+          <Image
+            alt={t("screens.list")}
+            className="w-full"
+            height={640}
+            priority={true}
+            src="/menubar.png"
+            width={1120}
+          />
+        </div>
+      </main>
+
+      <section className="border-line border-t">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <h2 className="text-ink-3 text-xs tracking-wider">
             {t("features.title")}
           </h2>
-          <dl className="mt-6 border-line border-t">
+          <dl className="mt-8 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((item) => (
-              <div className="border-line border-b py-6" key={item.title}>
-                <dt className="font-display font-bold text-base">{item.title}</dt>
+              <div key={item.title}>
+                <dt className="font-display font-bold text-base">
+                  {item.title}
+                </dt>
                 <dd className="mt-2.5 text-ink-2 text-sm leading-relaxed">
                   {item.body}
                 </dd>
               </div>
             ))}
           </dl>
-
-          <footer className="mt-16 pb-4 text-center text-ink-3 text-xs">
-            <a className="underline" href={REPO}>
-              {t("footer.source")}
-            </a>
-            <span className="px-2">·</span>
-            <Link className="underline" href="/privacy">
-              {t("footer.privacy")}
-            </Link>
-          </footer>
         </div>
-      </main>
+      </section>
+
+      <footer className="mx-auto max-w-6xl px-6 py-10 text-center text-ink-3 text-xs">
+        <a className="underline" href={REPO}>
+          {t("footer.source")}
+        </a>
+        <span className="px-2">·</span>
+        <Link className="underline" href="/privacy">
+          {t("footer.privacy")}
+        </Link>
+      </footer>
     </>
   );
 }
