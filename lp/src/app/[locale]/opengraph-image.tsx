@@ -13,8 +13,8 @@ export function generateStaticParams(): { locale: string }[] {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-/* 実在のアプリ（Linear / Arc / CleanShot / Setapp）の作りに合わせる。
-   ブランド色の地に、アイコンと名前と短い一行だけ。説明文は入れない。
+/* 実在のアプリに合わせる。Linear と Setapp はアイコンと名前を横に並べ、
+   Arc と CleanShot はアイコンだけ。縦に積んでいるものは無かった。
    色はアイコンから取る。忍者なので地は藍、文字は覆面のクリーム */
 const FIELD = "#191c47";
 const PAPER = "#f2f0e9";
@@ -39,27 +39,30 @@ export default async function OgImage({
         alignItems: "center",
         background: FIELD,
         display: "flex",
-        flexDirection: "column",
+        gap: 56,
         height: "100%",
         justifyContent: "center",
         width: "100%",
       }}
     >
       {/* biome-ignore lint/performance/noImgElement: next/image is not available in ImageResponse */}
-      <img alt="" height={210} src={iconSrc} width={210} />
-      <div
-        style={{
-          color: PAPER,
-          display: "flex",
-          fontSize: 104,
-          letterSpacing: -2,
-          marginTop: 34,
-        }}
-      >
-        Nonja
-      </div>
-      <div style={{ color: MUTED, display: "flex", fontSize: 32, marginTop: 18 }}>
-        {isJa ? "通知を、静かに溜めておく受信箱" : "A quiet inbox for your notifications"}
+      <img alt="" height={230} src={iconSrc} width={230} />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            color: PAPER,
+            display: "flex",
+            fontSize: 112,
+            letterSpacing: -2,
+          }}
+        >
+          Nonja
+        </div>
+        <div style={{ color: MUTED, display: "flex", fontSize: 32, marginTop: 14 }}>
+          {isJa
+            ? "通知を、静かに溜めておく受信箱"
+            : "A quiet inbox for your notifications"}
+        </div>
       </div>
     </div>,
     {
