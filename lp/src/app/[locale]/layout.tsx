@@ -6,6 +6,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import { routing } from "@/i18n/routing";
+import { languageAlternates, localePath, ogAlternateLocales, ogLocale } from "@/i18n/urls";
 import "./globals.css";
 
 // 静かに使う道具の話なので、字面も素直なゴシックにする
@@ -45,17 +46,17 @@ export async function generateMetadata({
     description: t("description"),
     icons: { icon: "/icon.png" },
     alternates: {
-      canonical: locale === routing.defaultLocale ? "/" : `/${locale}`,
-      languages: Object.fromEntries(
-        routing.locales.map((one) => [one, one === routing.defaultLocale ? "/" : `/${one}`]),
-      ),
+      canonical: localePath(locale),
+      languages: languageAlternates(),
     },
     metadataBase: new URL("https://nonja.kkweb.io"),
     openGraph: {
+      locale: ogLocale(locale),
+      alternateLocale: ogAlternateLocales(locale),
       description: t("description"),
       title: t("title"),
       type: "website",
-      url: locale === routing.defaultLocale ? "/" : `/${locale}`,
+      url: localePath(locale),
     },
     title: t("title"),
     twitter: {
