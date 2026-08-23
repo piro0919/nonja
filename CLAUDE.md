@@ -65,3 +65,13 @@ with `/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Nonja.app/Co
 Nonja depends on an undocumented location that Apple can move in any system update. Before
 treating an empty list as a bug in the code, run `--dump` and confirm the store is still
 readable. SPEC.md carries this as a standing risk, not a defect.
+
+## OGP 画像
+
+配信しているのは `lp/src/app/[locale]/opengraph-image.tsx` が生成する動的ルート。
+`lp/public/ogp.png` は以前の静的画像で、**どこからも参照していない**。
+
+消していないのは、kkweb.io のポートフォリオ一覧が各サイトの `og:image` を24時間
+キャッシュしていて、キャッシュが古い URL を指したままファイルを消すと一覧の
+サムネイルが 404 になるため。実際に一度そうなった。消すなら、先に
+`vercel cache purge --type data` と再デプロイで kk-web を動的ルートに向けてから。
