@@ -14,7 +14,9 @@ let nonjaLog = Logger(subsystem: "io.kkweb.nonja", category: "opener")
 enum Opener {
 
     static func open(_ item: NonjaNotification) {
-        nonjaLog.info("開きます uuid=\(item.uuid, privacy: .public) app=\(item.bundleID, privacy: .public) ax=\(AXIsProcessTrusted(), privacy: .public)")
+        nonjaLog.info(
+            "開きます uuid=\(item.uuid, privacy: .public) app=\(item.bundleID, privacy: .public) ax=\(AXIsProcessTrusted(), privacy: .public)"
+        )
         if press(uuid: item.uuid) {
             nonjaLog.info("通知センター経由で押しました")
             return
@@ -30,8 +32,11 @@ enum Opener {
             nonjaLog.error("アクセシビリティの許可がありません")
             return false
         }
-        guard let app = NSRunningApplication.runningApplications(
-                withBundleIdentifier: "com.apple.notificationcenterui").first else { return false }
+        guard
+            let app = NSRunningApplication.runningApplications(
+                withBundleIdentifier: "com.apple.notificationcenterui"
+            ).first
+        else { return false }
 
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
         openNotificationCenter()
@@ -68,8 +73,11 @@ enum Opener {
     @discardableResult
     static func dismissGroup(anyOf uuids: [String]) -> Bool {
         guard !uuids.isEmpty, AXIsProcessTrusted() else { return false }
-        guard let app = NSRunningApplication.runningApplications(
-                withBundleIdentifier: "com.apple.notificationcenterui").first else { return false }
+        guard
+            let app = NSRunningApplication.runningApplications(
+                withBundleIdentifier: "com.apple.notificationcenterui"
+            ).first
+        else { return false }
 
         let axApp = AXUIElementCreateApplication(app.processIdentifier)
         openNotificationCenter()
@@ -95,7 +103,8 @@ enum Opener {
     private static func clearAction(of element: AXUIElement) -> String? {
         var names: CFArray?
         guard AXUIElementCopyActionNames(element, &names) == .success,
-              let list = names as? [String] else { return nil }
+            let list = names as? [String]
+        else { return nil }
         return list.first { $0.contains("すべて消去") }
             ?? list.first { $0.contains("閉じる") || $0.lowercased().contains("close") }
     }
@@ -104,12 +113,14 @@ enum Opener {
         if depth > 12 { return nil }
         var value: AnyObject?
         if AXUIElementCopyAttributeValue(root, kAXIdentifierAttribute as CFString, &value) == .success,
-           let id = value as? String, id.caseInsensitiveCompare(uuid) == .orderedSame {
+            let id = value as? String, id.caseInsensitiveCompare(uuid) == .orderedSame
+        {
             return root
         }
         var kids: AnyObject?
         guard AXUIElementCopyAttributeValue(root, kAXChildrenAttribute as CFString, &kids) == .success,
-              let children = kids as? [AXUIElement] else { return nil }
+            let children = kids as? [AXUIElement]
+        else { return nil }
         for child in children {
             if let hit = find(uuid: uuid, in: child, depth: depth + 1) { return hit }
         }
@@ -118,7 +129,8 @@ enum Opener {
 
     /// メニューバーの時計を押すと通知センターが開く。専用の API は公開されていない
     private static func openNotificationCenter() {
-        run("""
+        run(
+            """
             tell application "System Events" to tell process "ControlCenter" \
             to click (first menu bar item of menu bar 1 whose description is "時計")
             """)
@@ -129,7 +141,8 @@ enum Opener {
     /// **Escape では閉じない。** 押した直後は前面が元アプリへ移っているので、
     /// Escape はそちらへ流れる。時計はどこが前面でも同じように効く
     private static func closeNotificationCenter() {
-        run("""
+        run(
+            """
             tell application "System Events" to tell process "ControlCenter" \
             to click (first menu bar item of menu bar 1 whose description is "時計")
             """)

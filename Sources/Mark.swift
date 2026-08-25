@@ -26,8 +26,10 @@ enum Mark {
     private static let stroke: CGFloat = 6
 
     /// `rotation` は度。届いたときに短く回すために使う（SPEC.md「届いたら回す」）
-    static func menuBarImage(hasItems: Bool, size: CGFloat = 18,
-                             rotation: CGFloat = 0) -> NSImage {
+    static func menuBarImage(
+        hasItems: Bool, size: CGFloat = 18,
+        rotation: CGFloat = 0
+    ) -> NSImage {
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
             let s = rect.width / 100
             if rotation != 0 {
@@ -39,9 +41,10 @@ enum Mark {
                 move.concat()
             }
             let star = shuriken(scale: s)
-            let hole = NSBezierPath(ovalIn: NSRect(
-                x: (50 - holeRadius) * s, y: (50 - holeRadius) * s,
-                width: holeRadius * 2 * s, height: holeRadius * 2 * s))
+            let hole = NSBezierPath(
+                ovalIn: NSRect(
+                    x: (50 - holeRadius) * s, y: (50 - holeRadius) * s,
+                    width: holeRadius * 2 * s, height: holeRadius * 2 * s))
 
             NSColor.black.setFill()
             NSColor.black.setStroke()
@@ -72,13 +75,14 @@ enum Mark {
         let center = NSPoint(x: 50 * s, y: 50 * s)
         func point(_ degrees: CGFloat, _ radius: CGFloat) -> NSPoint {
             let a = degrees * .pi / 180
-            return NSPoint(x: center.x + cos(a) * radius * s,
-                           y: center.y + sin(a) * radius * s)
+            return NSPoint(
+                x: center.x + cos(a) * radius * s,
+                y: center.y + sin(a) * radius * s)
         }
 
         let path = NSBezierPath()
         for arm in 0..<4 {
-            let axis = 90 + CGFloat(arm) * 90                 // 上・左・下・右
+            let axis = 90 + CGFloat(arm) * 90  // 上・左・下・右
             let tip = point(axis, tipRadius)
             if arm == 0 { path.move(to: tip) } else { path.line(to: tip) }
 

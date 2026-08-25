@@ -13,10 +13,11 @@ final class KeyTableView: NSTableView {
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
         trackingAreas.forEach(removeTrackingArea)
-        addTrackingArea(NSTrackingArea(
-            rect: .zero,
-            options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect],
-            owner: self))
+        addTrackingArea(
+            NSTrackingArea(
+                rect: .zero,
+                options: [.mouseEnteredAndExited, .mouseMoved, .activeInKeyWindow, .inVisibleRect],
+                owner: self))
     }
 
     override func mouseMoved(with event: NSEvent) { controller?.updateHover() }
@@ -171,9 +172,11 @@ final class ListWindowController: NSWindowController {
             self, selector: #selector(scrolled),
             name: NSView.boundsDidChangeNotification, object: scroll.contentView)
 
-        let gear = NSButton(image: NSImage(systemSymbolName: "gearshape",
-                                           accessibilityDescription: "設定") ?? NSImage(),
-                            target: self, action: #selector(openSettings))
+        let gear = NSButton(
+            image: NSImage(
+                systemSymbolName: "gearshape",
+                accessibilityDescription: "設定") ?? NSImage(),
+            target: self, action: #selector(openSettings))
         gear.isBordered = false
         gear.bezelStyle = .inline
         gear.contentTintColor = .secondaryLabelColor
@@ -332,10 +335,10 @@ final class ListWindowController: NSWindowController {
 
     func keyDownInTable(_ event: NSEvent) -> Bool {
         switch event.keyCode {
-        case 36, 76:            // Return
+        case 36, 76:  // Return
             openSelected()
             return true
-        case 51, 117:           // Delete
+        case 51, 117:  // Delete
             retireSelected()
             return true
         default:
@@ -352,10 +355,11 @@ final class ListWindowController: NSWindowController {
         guard let window = table.window else { return }
         let inTable = table.convert(window.mouseLocationOutsideOfEventStream, from: nil)
         let hovered = table.bounds.contains(inTable) ? table.row(at: inTable) : -1
-        for row in table.rows(in: table.visibleRect).lowerBound
-            ..< table.rows(in: table.visibleRect).upperBound {
-            guard let view = table.view(atColumn: 0, row: row, makeIfNecessary: false)
-                    as? HoverRevealView else { continue }
+        for row in table.rows(in: table.visibleRect).lowerBound..<table.rows(in: table.visibleRect).upperBound {
+            guard
+                let view = table.view(atColumn: 0, row: row, makeIfNecessary: false)
+                    as? HoverRevealView
+            else { continue }
             view.revealed?.alphaValue = row == hovered ? 1 : 0
         }
     }
@@ -405,7 +409,8 @@ final class ListWindowController: NSWindowController {
     /// 行に出したボタンから既読にする。Delete と同じ扱いで、元アプリへは飛ばない
     @objc private func readRow(_ sender: NSButton) {
         guard let uuid = sender.identifier?.rawValue,
-              let item = inbox.first(where: { $0.uuid == uuid }) else { return }
+            let item = inbox.first(where: { $0.uuid == uuid })
+        else { return }
         retireAndDrop(item)
     }
 
@@ -430,8 +435,9 @@ final class ListWindowController: NSWindowController {
     /// Nonja 側では何も持たない。切る場所を二つに分けない
     @objc private func openNotificationSettings(_ sender: NSButton) {
         guard let bundleID = sender.identifier?.rawValue,
-              let url = URL(string: "x-apple.systempreferences:"
-                            + "com.apple.Notifications-Settings.extension?id=\(bundleID)")
+            let url = URL(
+                string: "x-apple.systempreferences:"
+                    + "com.apple.Notifications-Settings.extension?id=\(bundleID)")
         else { return }
         NSWorkspace.shared.open(url)
     }
@@ -471,14 +477,17 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         return true
     }
 
-    func tableView(_ tableView: NSTableView,
-                   viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+    func tableView(
+        _ tableView: NSTableView,
+        viewFor tableColumn: NSTableColumn?, row: Int
+    ) -> NSView? {
         switch rows[row] {
         case .header(let bundleID, let app):
             // アプリ名そのものが、そのアプリの通知設定への入口。
             // 見出しにボタンを増やさずに済む（SPEC.md「アプリ単位の通知は OS の設定へ送る」）
-            let label = PointingButton(title: app.uppercased(), target: self,
-                                       action: #selector(openNotificationSettings(_:)))
+            let label = PointingButton(
+                title: app.uppercased(), target: self,
+                action: #selector(openNotificationSettings(_:)))
             label.isBordered = false
             label.bezelStyle = .inline
             label.font = .systemFont(ofSize: 10, weight: .bold)
@@ -543,8 +552,9 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         row.orientation = .horizontal
         row.alignment = .top
         row.spacing = 10
-        row.edgeInsets = NSEdgeInsets(top: Self.rowPadding, left: 16,
-                                      bottom: Self.rowPadding, right: 14)
+        row.edgeInsets = NSEdgeInsets(
+            top: Self.rowPadding, left: 16,
+            bottom: Self.rowPadding, right: 14)
         row.revealed = read
         return row
     }

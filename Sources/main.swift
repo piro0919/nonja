@@ -6,7 +6,8 @@ enum Nonja {
         // 画面を出さずに読み取りだけ確かめる口。権限や構造が壊れたときの切り分けに使う
         // ログイン項目の登録は失敗の理由が見えにくいので、切り離して試せるようにする
         if let index = CommandLine.arguments.firstIndex(of: "--login"),
-           index + 1 < CommandLine.arguments.count {
+            index + 1 < CommandLine.arguments.count
+        {
             let wanted = CommandLine.arguments[index + 1] == "on"
             let ok = Login.setEnabled(wanted)
             print("登録\(wanted ? "" : "解除")：\(ok ? "成功" : "失敗") ・ 現在: \(Login.isEnabled ? "有効" : "無効")")
@@ -21,7 +22,8 @@ enum Nonja {
         }
         // 遷移だけを切り離して試す口。押せたかどうかを返す
         if let index = CommandLine.arguments.firstIndex(of: "--press"),
-           index + 1 < CommandLine.arguments.count {
+            index + 1 < CommandLine.arguments.count
+        {
             press(uuid: CommandLine.arguments[index + 1])
             return
         }
@@ -125,15 +127,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// メニューバーの印の真下に出す。画面の端からははみ出させない
     private func placeUnderStatusItem(_ window: NSWindow) {
         guard let button = statusItem.button, let barWindow = button.window,
-              let screen = barWindow.screen ?? NSScreen.main else {
+            let screen = barWindow.screen ?? NSScreen.main
+        else {
             window.center()
             return
         }
         let anchor = barWindow.frame
         var x = anchor.midX - window.frame.width / 2
         let margin: CGFloat = 8
-        x = min(max(x, screen.visibleFrame.minX + margin),
-                screen.visibleFrame.maxX - window.frame.width - margin)
+        x = min(
+            max(x, screen.visibleFrame.minX + margin),
+            screen.visibleFrame.maxX - window.frame.width - margin)
         let y = anchor.minY - window.frame.height - 6
         window.setFrameOrigin(NSPoint(x: x, y: y))
     }
@@ -152,16 +156,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.menu = nil
     }
 
-
     @objc func showSettings() {
         settingsWindow.refresh()
         // 一覧を出している画面に出す。center() だと別のディスプレイに飛ぶことがある
         if let settings = settingsWindow.window,
-           let screen = listWindow.window?.screen ?? NSScreen.main {
+            let screen = listWindow.window?.screen ?? NSScreen.main
+        {
             let area = screen.visibleFrame
-            settings.setFrameOrigin(NSPoint(
-                x: area.midX - settings.frame.width / 2,
-                y: area.midY - settings.frame.height / 2))
+            settings.setFrameOrigin(
+                NSPoint(
+                    x: area.midX - settings.frame.width / 2,
+                    y: area.midY - settings.frame.height / 2))
         }
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow.showWindow(nil)
@@ -174,7 +179,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 件数は出さない。溜まっているかどうかだけを、印の塗りと輪郭で示す
     private func showPresence() {
-        guard spinTimer == nil else { return }   // 回している間は上書きしない
+        guard spinTimer == nil else { return }  // 回している間は上書きしない
         statusItem.button?.image = Mark.menuBarImage(hasItems: listWindow.unreadCount > 0)
     }
 
@@ -189,7 +194,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 減速するぶん、等速のときより少し長くしないと最後が駆け足になる
         let duration: TimeInterval = 0.8
         spinTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] timer in
-            guard let self else { timer.invalidate(); return }
+            guard let self else {
+                timer.invalidate()
+                return
+            }
             let progress = Date().timeIntervalSince(started) / duration
             if progress >= 1 {
                 timer.invalidate()

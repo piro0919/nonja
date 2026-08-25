@@ -47,7 +47,8 @@ enum Store {
         // WAL に未反映の書き込みがあるので immutable では読まない。mode=ro で開く
         let uri = "file:\(Paths.notificationDB.path)?mode=ro"
         guard sqlite3_open_v2(uri, &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, nil) == SQLITE_OK,
-              let db else {
+            let db
+        else {
             let message = db.map { String(cString: sqlite3_errmsg($0)) } ?? "不明"
             sqlite3_close(db)
             throw Failure.openFailed(message)
@@ -77,13 +78,14 @@ enum Store {
             guard let uuid, let bundleID else { continue }
 
             let seconds = sqlite3_column_double(stmt, 2) + Paths.appleEpochOffset
-            out.append(NonjaNotification(
-                uuid: uuid,
-                bundleID: bundleID,
-                title: fields.title,
-                subtitle: fields.subtitle,
-                body: fields.body,
-                deliveredAt: Date(timeIntervalSince1970: seconds)))
+            out.append(
+                NonjaNotification(
+                    uuid: uuid,
+                    bundleID: bundleID,
+                    title: fields.title,
+                    subtitle: fields.subtitle,
+                    body: fields.body,
+                    deliveredAt: Date(timeIntervalSince1970: seconds)))
         }
         return out
     }
@@ -107,10 +109,14 @@ enum Store {
     private static func uuidString(_ data: Data) -> String? {
         guard data.count == 16 else { return nil }
         let bytes = [UInt8](data)
-        return UUID(uuid: (bytes[0], bytes[1], bytes[2], bytes[3],
-                           bytes[4], bytes[5], bytes[6], bytes[7],
-                           bytes[8], bytes[9], bytes[10], bytes[11],
-                           bytes[12], bytes[13], bytes[14], bytes[15])).uuidString
+        return UUID(
+            uuid: (
+                bytes[0], bytes[1], bytes[2], bytes[3],
+                bytes[4], bytes[5], bytes[6], bytes[7],
+                bytes[8], bytes[9], bytes[10], bytes[11],
+                bytes[12], bytes[13], bytes[14], bytes[15]
+            )
+        ).uuidString
     }
 
     // MARK: - 本体のバイナリ plist
@@ -126,8 +132,10 @@ enum Store {
     /// data 列はバイナリ plist。表示に使うのは req の中の titl / subt / body
     private static func parse(payload: Data) -> Fields {
         var f = Fields()
-        guard let root = try? PropertyListSerialization.propertyList(
-                from: payload, options: [], format: nil) as? [String: Any] else { return f }
+        guard
+            let root = try? PropertyListSerialization.propertyList(
+                from: payload, options: [], format: nil) as? [String: Any]
+        else { return f }
 
         f.app = root["app"] as? String
         if let raw = root["uuid"] as? Data { f.uuid = uuidString(raw) }

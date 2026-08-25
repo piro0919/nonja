@@ -29,7 +29,8 @@ final class State: Codable {
         // 書き出し側と形式を揃える。ここを忘れると読み込みが丸ごと失敗して設定が消える
         decoder.dateDecodingStrategy = .iso8601
         guard let data = try? Data(contentsOf: fileURL),
-              let state = try? decoder.decode(State.self, from: data) else { return State() }
+            let state = try? decoder.decode(State.self, from: data)
+        else { return State() }
         return state
     }
 

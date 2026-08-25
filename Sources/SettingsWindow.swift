@@ -37,7 +37,8 @@ final class SettingsWindowController: NSWindowController {
         let update = NSButton(title: "更新を確認", target: self, action: #selector(checkForUpdates))
         update.bezelStyle = .rounded
 
-        let version = Bundle.main
+        let version =
+            Bundle.main
             .object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-"
         let about = NSTextField(labelWithString: "Nonja \(version)")
         about.font = .systemFont(ofSize: 11)

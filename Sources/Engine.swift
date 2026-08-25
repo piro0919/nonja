@@ -45,8 +45,10 @@ enum Engine {
     }
 
     /// 保持時間を過ぎていて、かつまだ確認していないもの
-    private static func isExpired(_ item: NonjaNotification, rule: Rule,
-                                  state: State, now: Date) -> Bool {
+    private static func isExpired(
+        _ item: NonjaNotification, rule: Rule,
+        state: State, now: Date
+    ) -> Bool {
         if confirmed(item, state: state) { return false }
         let deadline = item.deliveredAt.addingTimeInterval(TimeInterval(rule.holdMinutes) * 60)
         return now >= deadline

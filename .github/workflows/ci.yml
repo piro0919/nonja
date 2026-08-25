@@ -17,5 +17,7 @@ jobs:
         with:
           path: Vendor
           key: ${{ runner.os }}-vendor-${{ hashFiles('build.sh') }}
+      # 整形の規則は .swift-format にある。既定との差は字下げ4つと行幅120だけ。
+      - run: swift format lint --strict -r Sources
       - run: ./build.sh
       - run: ./Nonja.app/Contents/MacOS/Nonja --selftest
