@@ -12,7 +12,7 @@ TARGET="arm64-apple-macos14.0"
 # 証明書がなければ暫定署名に落とすが、そのときは許可を入れ直す必要がある
 SIGN_IDENTITY="${NONJA_SIGN_IDENTITY:-Okigae Dev}"
 if ! security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
-  echo "警告: 証明書「$SIGN_IDENTITY」が見つかりません。暫定署名にします（許可が外れます）" >&2
+  echo "警告: 証明書「${SIGN_IDENTITY}」が見つかりません。暫定署名にします（許可が外れます）" >&2
   SIGN_IDENTITY="-"
 fi
 # リリース時は release.sh から渡される。手元のビルドでは 0.0.0 のままでよい
