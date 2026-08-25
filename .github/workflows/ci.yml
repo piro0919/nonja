@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # swiftc で直接組んで、出来上がった .app の --selftest を回す。
+  # 画面もネットワークも設定も触らないので、ランナーで動く。
+  ci:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Sparkle は build.sh が無ければ取ってくる。毎回取らずに済ませる。
+      - uses: actions/cache@v4
+        with:
+          path: Vendor
+          key: ${{ runner.os }}-vendor-${{ hashFiles('build.sh') }}
+      - run: ./build.sh
+      - run: ./Nonja.app/Contents/MacOS/Nonja --selftest
