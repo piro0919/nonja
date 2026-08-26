@@ -118,3 +118,7 @@ Nonja says so on screen rather than sitting there looking empty.
 
 `SPEC.md` holds the reasoning behind every decision here, in Japanese, including
 the routes that were tried and abandoned.
+
+## License
+
+MIT
