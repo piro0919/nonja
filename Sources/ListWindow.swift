@@ -1,6 +1,7 @@
 import AppKit
 
 /// Return と Delete を拾う表。既定ではどちらも何もしない
+@MainActor
 final class KeyTableView: NSTableView {
     weak var controller: ListWindowController?
 
@@ -31,6 +32,7 @@ final class KeyTableView: NSTableView {
 /// **出し入れの判断は行では持たない。** 行ごとに追跡領域を置くと、スクロールで
 /// 通り過ぎたときに入った通知だけが来て出た通知が来ず、出たままの行が溜まる。
 /// 表がカーソルの位置から一行だけ選ぶ（`ListWindowController.updateHover`）
+@MainActor
 final class HoverRevealView: NSStackView {
     weak var revealed: NSView?
 }
@@ -38,6 +40,7 @@ final class HoverRevealView: NSStackView {
 /// 押せることをカーソルで伝えるボタン。
 ///
 /// 見出しのアプリ名は文字だけの見た目なので、指の形に変わるかどうかが唯一の手掛かりになる
+@MainActor
 final class PointingButton: NSButton {
     override func resetCursorRects() {
         addCursorRect(bounds, cursor: .pointingHand)
@@ -45,6 +48,7 @@ final class PointingButton: NSButton {
 }
 
 /// 選択の帯を角丸にする。左右に余白を取って、窓の縁まで届かせない
+@MainActor
 final class RoundedRowView: NSTableRowView {
     override func drawSelection(in dirtyRect: NSRect) {
         guard selectionHighlightStyle != .none else { return }
@@ -60,6 +64,7 @@ final class RoundedRowView: NSTableRowView {
 ///
 /// 時系列に混ぜると通知センターと同じで埋もれるので、**アプリごとにまとめる**。
 /// 束の並びは、その束の一番新しい通知の時刻で決める。
+@MainActor
 final class ListWindowController: NSWindowController {
 
     /// 表に流し込む一行。見出しと中身が混ざる

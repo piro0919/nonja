@@ -4,6 +4,7 @@ import AppKit
 ///
 /// 振り分けルールと確認の基準そのものは `state.json` に書けば効く。
 /// 画面から編集する口は持たない。
+@MainActor
 final class SettingsWindowController: NSWindowController {
 
     private let login = NSButton()

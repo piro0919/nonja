@@ -2,6 +2,7 @@ import AppKit
 
 @main
 enum Nonja {
+    @MainActor
     static func main() {
         // 画面を出さずに読み取りだけ確かめる口。権限や構造が壊れたときの切り分けに使う
         // ログイン項目の登録は失敗の理由が見えにくいので、切り離して試せるようにする
@@ -62,6 +63,7 @@ enum Nonja {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
@@ -91,7 +93,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Updater.shared.checkQuietly()
         // 通知の到着はデータベースへの反映まで約5秒遅れる。細かく見に行っても意味が無い
         timer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-            self?.refresh()
+            // Timer は主の実行ループから呼ぶ。飛ばずに入り、違ったら落とす
+            MainActor.assumeIsolated { self?.refresh() }
         }
     }
 
@@ -198,20 +201,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 timer.invalidate()
                 return
             }
-            let progress = Date().timeIntervalSince(started) / duration
-            if progress >= 1 {
-                timer.invalidate()
-                self.spinTimer = nil
-                self.showPresence()
-                return
+            // Timer は主の実行ループから呼ぶ。飛ばずに入り、違ったら落とす
+            MainActor.assumeIsolated {
+                let progress = Date().timeIntervalSince(started) / duration
+                if progress >= 1 {
+                    self.spinTimer?.invalidate()
+                    self.spinTimer = nil
+                    self.showPresence()
+                    return
+                }
+                // 等速だと機械が回っているように見える。投げたものは勢いよく回り始めて、
+                // 抵抗で緩みながら止まる。三乗で減速させるとその感じになる
+                let eased = 1 - pow(1 - progress, 3)
+                // 手裏剣は投げた向きに回る。負の角で時計回りになる
+                self.statusItem.button?.image = Mark.menuBarImage(
+                    hasItems: self.listWindow.unreadCount > 0,
+                    rotation: -360 * eased)
             }
-            // 等速だと機械が回っているように見える。投げたものは勢いよく回り始めて、
-            // 抵抗で緩みながら止まる。三乗で減速させるとその感じになる
-            let eased = 1 - pow(1 - progress, 3)
-            // 手裏剣は投げた向きに回る。負の角で時計回りになる
-            self.statusItem.button?.image = Mark.menuBarImage(
-                hasItems: self.listWindow.unreadCount > 0,
-                rotation: -360 * eased)
         }
     }
 }

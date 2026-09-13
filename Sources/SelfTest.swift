@@ -2,6 +2,7 @@ import Foundation
 
 /// ルールの当たり方を、作った通知で確かめる。`./Nonja --selftest` で走る。
 /// 画面を触らずに済むので、直したあと毎回これを通す。
+@MainActor
 enum SelfTest {
 
     private static var failures = 0

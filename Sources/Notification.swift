@@ -12,7 +12,9 @@ struct NonjaNotification {
     let body: String?
     let deliveredAt: Date
 
-    /// 一覧に出す送信元の名前。バンドル識別子からアプリ名を引けなければ識別子のまま出す
+    /// 一覧に出す送信元の名前。バンドル識別子からアプリ名を引けなければ識別子のまま出す。
+    /// 名前とアイコンの控えは画面側だけが持つので、ここも主アクターに居る
+    @MainActor
     var appName: String {
         AppNames.displayName(for: bundleID)
     }
@@ -25,6 +27,7 @@ struct NonjaNotification {
     }
 }
 
+@MainActor
 enum AppNames {
     private static var cache: [String: String] = [:]
     private static var icons: [String: NSImage] = [:]
