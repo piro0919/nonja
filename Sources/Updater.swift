@@ -20,6 +20,9 @@ final class Updater: NSObject, SPUUpdaterDelegate {
 
     /// 起動時の確認。何も無ければ黙って終わる
     func checkQuietly() {
+        // 手元のビルドは 0.0.0 なので、確認すると毎回「新しい版がある」と出る。Hawky と同じく飛ばす
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        guard version != "0.0.0" else { return }
         controller.updater.checkForUpdateInformation()
     }
 
@@ -45,7 +48,9 @@ final class Updater: NSObject, SPUUpdaterDelegate {
         error: (any Error)?
     ) {
         nonjaLog.info("更新の確認が終わった: \(error.map { "\($0)" } ?? "問題なし", privacy: .public)")
-        guard foundUpdate else { return }
+        // 後始末は黙った確認のときだけ。checkNow で出した画面を閉じたときもここに来て、
+        // そこでも didFindValidUpdate が立っている。見分けずに出し直すと、閉じるたびに画面が出直す
+        guard updateCheck == .updateInformation, foundUpdate else { return }
         foundUpdate = false
 
         DispatchQueue.main.async { [weak self] in
