@@ -14,7 +14,7 @@ final class SettingsWindowController: NSWindowController {
             contentRect: NSRect(x: 0, y: 0, width: 320, height: 80),
             styleMask: [.titled, .closable],
             backing: .buffered, defer: false)
-        window.title = "Nonja の設定"
+        window.title = L.settingsTitle
         window.isReleasedWhenClosed = false
         super.init(window: window)
         build()
@@ -25,7 +25,7 @@ final class SettingsWindowController: NSWindowController {
     private func build() {
         guard let content = window?.contentView else { return }
 
-        login.title = "ログイン時に起動する"
+        login.title = L.launchAtLogin
         login.setButtonType(.switch)
         // 位置を制約で決めるものは、必ずこれを切る。切り忘れると自動生成の制約と
         // ぶつかって、そこを起点に画面全体が崩れる
@@ -35,7 +35,7 @@ final class SettingsWindowController: NSWindowController {
 
         // 手で更新を確かめる口。Konechi・Gocci と同じく設定に置く。
         // 確認そのものは起動時に1回走るが、常駐して落とさない使い方だと機会が無い
-        let update = NSButton(title: "更新を確認", target: self, action: #selector(checkForUpdates))
+        let update = NSButton(title: L.checkForUpdates, target: self, action: #selector(checkForUpdates))
         update.bezelStyle = .rounded
 
         let version =

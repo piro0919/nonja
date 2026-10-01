@@ -155,10 +155,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 読み直しは 10 秒ごとに走り、既読はアプリごとの見出しにあり、
         // OS の通知設定は見出しのアプリ名から開く。ここに並べる理由がない
         let menu = NSMenu()
-        menu.addItem(withTitle: "設定…", action: #selector(showSettings), keyEquivalent: ",")
+        menu.addItem(withTitle: L.settings, action: #selector(showSettings), keyEquivalent: ",")
             .target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Nonja を終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: L.quit, action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
         statusItem.menu = nil

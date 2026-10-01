@@ -49,7 +49,7 @@ swiftc \
   -framework Sparkle \
   -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
   -o "$APP/Contents/MacOS/Nonja" \
-  Sources/Paths.swift Sources/Notification.swift Sources/Store.swift \
+  Sources/Localization.swift Sources/Paths.swift Sources/Notification.swift Sources/Store.swift \
   Sources/Mark.swift Sources/Login.swift Sources/Rules.swift Sources/State.swift Sources/Engine.swift Sources/SelfTest.swift \
   Sources/Updater.swift Sources/Opener.swift \
   Sources/ListWindow.swift Sources/SettingsWindow.swift Sources/main.swift

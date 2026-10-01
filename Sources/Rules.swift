@@ -12,9 +12,9 @@ struct Rule: Codable, Equatable {
 
         var label: String {
             switch self {
-            case .show: return "すぐ見せる"
-            case .hold: return "溜める"
-            case .mute: return "自動で既読"
+            case .show: return L.ruleShow
+            case .hold: return L.ruleHold
+            case .mute: return L.ruleMute
             }
         }
     }
@@ -42,8 +42,8 @@ enum ConfirmBasis: String, Codable, CaseIterable {
 
     var label: String {
         switch self {
-        case .displayed: return "一覧に出たら確認済み"
-        case .clicked: return "クリックしたら確認済み"
+        case .displayed: return L.basisDisplayed
+        case .clicked: return L.basisClicked
         }
     }
 }

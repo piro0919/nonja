@@ -75,7 +75,7 @@ final class ListWindowController: NSWindowController {
 
     private let table = KeyTableView()
     /// 空のときだけ出す一行。窓が小さく畳まれるので、無言だと窓が壊れて見える
-    private let empty = NSTextField(labelWithString: "通知はありません")
+    private let empty = NSTextField(labelWithString: L.noNotifications)
     private let status = NSTextField(labelWithString: "")
     /// 測った行の高さ。鍵は uuid と幅
     private var heights: [String: CGFloat] = [:]
@@ -180,7 +180,7 @@ final class ListWindowController: NSWindowController {
         let gear = NSButton(
             image: NSImage(
                 systemSymbolName: "gearshape",
-                accessibilityDescription: "設定") ?? NSImage(),
+                accessibilityDescription: L.settingsButton) ?? NSImage(),
             target: self, action: #selector(openSettings))
         gear.isBordered = false
         gear.bezelStyle = .inline
@@ -505,7 +505,7 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
 
             // 束ごとの操作。1件ずつ触らずに済むようにする
             // 行のボタンと同じ言葉にしない。どちらが一件でどちらが全部か読めなくなる
-            let readAll = smallButton("すべて既読", #selector(readGroup(_:)), bundleID)
+            let readAll = smallButton(L.markAllRead, #selector(readGroup(_:)), bundleID)
 
             let stack = NSStackView(views: [label, spacer, readAll])
             stack.orientation = .horizontal
@@ -529,7 +529,7 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         icon.widthAnchor.constraint(equalToConstant: 26).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 26).isActive = true
 
-        let body = NSTextField(labelWithString: text.isEmpty ? "（本文なし）" : Self.clip(text))
+        let body = NSTextField(labelWithString: text.isEmpty ? L.noBody : Self.clip(text))
         body.font = .systemFont(ofSize: 12.5, weight: .medium)
         body.textColor = .labelColor
         body.lineBreakMode = .byTruncatingTail
@@ -551,7 +551,7 @@ extension ListWindowController: NSTableViewDataSource, NSTableViewDelegate {
         spacer.setContentHuggingPriority(.init(1), for: .horizontal)
 
         // 指を乗せた行にだけ出す。休んでいる間は透明で、場所だけ取っている
-        let read = smallButton("既読", #selector(readRow(_:)), item.uuid)
+        let read = smallButton(L.markRead, #selector(readRow(_:)), item.uuid)
         read.alphaValue = 0
 
         let row = HoverRevealView(views: [icon, lines, spacer, read])

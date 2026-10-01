@@ -16,13 +16,13 @@ enum Store {
         var description: String {
             switch self {
             case .noPermission:
-                return "通知センターのデータベースを読む権限がありません。フルディスクアクセスを許可してください。"
+                return L.noPermission
             case .notFound:
-                return "通知センターのデータベースが見つかりません。OS の更新で場所が変わった可能性があります。"
+                return L.notFound
             case .openFailed(let m):
-                return "データベースを開けませんでした: \(m)"
+                return L.openFailed(m)
             case .queryFailed(let m):
-                return "データベースを読めませんでした: \(m)"
+                return L.queryFailed(m)
             }
         }
     }
@@ -49,7 +49,7 @@ enum Store {
         guard sqlite3_open_v2(uri, &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_URI, nil) == SQLITE_OK,
             let db
         else {
-            let message = db.map { String(cString: sqlite3_errmsg($0)) } ?? "不明"
+            let message = db.map { String(cString: sqlite3_errmsg($0)) } ?? L.unknown
             sqlite3_close(db)
             throw Failure.openFailed(message)
         }
