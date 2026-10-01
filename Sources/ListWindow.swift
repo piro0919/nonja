@@ -390,8 +390,9 @@ final class ListWindowController: NSWindowController {
 
     private func open(_ item: NonjaNotification) {
         state.clicked.insert(item.uuid)
-        // 先に飛ぶ。通知センターから消してから押しても、押す相手が居ない
-        Opener.open(item)
+        // 先に飛ぶ。通知センターから消してから押しても、押す相手が居ない。
+        // 飛ぶ操作は待たずに戻る。一覧から下ろすのは押し終わりを待たなくてよい
+        Opener.openInBackground(item)
         retire(item)
         state.save()
         // 開いた時点で用は済んでいる。一覧からは下ろす
@@ -456,7 +457,7 @@ final class ListWindowController: NSWindowController {
         let uuids = inbox.filter { $0.bundleID == bundleID }.map(\.uuid)
         for item in inbox where item.bundleID == bundleID { retire(item) }
         state.save()
-        Opener.dismissGroup(anyOf: uuids)
+        Opener.dismissGroupInBackground(anyOf: uuids)
         inbox.removeAll { $0.bundleID == bundleID }
         rebuildRows()
         updateStatus(error: nil)

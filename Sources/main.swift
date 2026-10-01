@@ -35,17 +35,22 @@ enum Nonja {
         app.run()
     }
 
+    /// 押すのは待ちを挟む非同期の処理なので、主キューを回して終わりを待つ。終わったら抜ける
     private static func press(uuid: String) {
         guard AXIsProcessTrusted() else {
             print("アクセシビリティの許可がありません")
             exit(1)
         }
-        if Opener.press(uuid: uuid) {
-            print("押せました: \(uuid)")
-        } else {
-            print("通知センターに見つかりませんでした: \(uuid)")
-            exit(1)
+        Task {
+            if await Opener.press(uuid: uuid) {
+                print("押せました: \(uuid)")
+                exit(0)
+            } else {
+                print("通知センターに見つかりませんでした: \(uuid)")
+                exit(1)
+            }
         }
+        dispatchMain()
     }
 
     private static func dump() {

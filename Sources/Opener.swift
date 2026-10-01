@@ -11,13 +11,41 @@ let nonjaLog = Logger(subsystem: "io.kkweb.nonja", category: "opener")
 /// 本物の通知を通知センター経由で押す。`AXPress` は利用者のクリックそのものなので、
 /// 遷移は OS が本来やる動きになる（SPEC.md「元アプリへの遷移」）。
 /// すでに通知センターから消えている通知は押せないので、そのときはアプリを起動するだけに留める。
+///
+/// **待つ間に主スレッドを止めない。** 通知センターが開くのを待つ間、最長で 2.4 秒かかる。
+/// `Thread.sleep` で待っていた頃は、その間メニューバーも一覧も固まっていた。
+/// `Task.sleep` で手放して待つ
+@MainActor
 enum Opener {
 
-    static func open(_ item: NonjaNotification) {
+    /// 前の操作が終わるまで次を始めない。
+    /// どちらも時計を押して通知センターを開け閉めするので、重なると開閉が噛み合わず開いたまま残る
+    private static var last: Task<Void, Never>?
+
+    /// 操作を順番待ちに並べる。呼んだ側は待たずに戻ってよい
+    private static func enqueue(_ work: @escaping @MainActor () async -> Void) {
+        let previous = last
+        last = Task {
+            await previous?.value
+            await work()
+        }
+    }
+
+    /// 開く操作を並べて、すぐ戻る。一覧のクリックから呼ぶ
+    static func openInBackground(_ item: NonjaNotification) {
+        enqueue { await open(item) }
+    }
+
+    /// 束を消す操作を並べて、すぐ戻る。「すべて既読」から呼ぶ
+    static func dismissGroupInBackground(anyOf uuids: [String]) {
+        enqueue { await dismissGroup(anyOf: uuids) }
+    }
+
+    static func open(_ item: NonjaNotification) async {
         nonjaLog.info(
             "開きます uuid=\(item.uuid, privacy: .public) app=\(item.bundleID, privacy: .public) ax=\(AXIsProcessTrusted(), privacy: .public)"
         )
-        if press(uuid: item.uuid) {
+        if await press(uuid: item.uuid) {
             nonjaLog.info("通知センター経由で押しました")
             return
         }
@@ -26,7 +54,7 @@ enum Opener {
     }
 
     /// 通知センターを開いて該当要素を押す。見つからなければ false
-    static func press(uuid: String) -> Bool {
+    static func press(uuid: String) async -> Bool {
         nonjaLog.info("press 開始 uuid=\(uuid, privacy: .public) ax=\(AXIsProcessTrusted(), privacy: .public)")
         guard AXIsProcessTrusted() else {
             nonjaLog.error("アクセシビリティの許可がありません")
@@ -50,10 +78,10 @@ enum Opener {
                 AXUIElementPerformAction(target, kAXPressAction as CFString)
                 // 押した直後に閉じにいくと早すぎて効かない。
                 // 表示が動いている最中の操作は飲み込まれ、開いたまま残る
-                Thread.sleep(forTimeInterval: 0.4)
+                await pause(0.4)
                 return true
             }
-            Thread.sleep(forTimeInterval: 0.05)
+            await pause(0.05)
         }
         return false
     }
@@ -71,7 +99,7 @@ enum Opener {
     /// 束の識別子は一番新しい通知のものになる。どれが先頭か分からないので、
     /// 渡された uuid を順に当てて、最初に見つかったものを使う
     @discardableResult
-    static func dismissGroup(anyOf uuids: [String]) -> Bool {
+    static func dismissGroup(anyOf uuids: [String]) async -> Bool {
         guard !uuids.isEmpty, AXIsProcessTrusted() else { return false }
         guard
             let app = NSRunningApplication.runningApplications(
@@ -92,10 +120,15 @@ enum Opener {
                 nonjaLog.info("通知センターの束を消しました: \(ok, privacy: .public)")
                 return ok
             }
-            Thread.sleep(forTimeInterval: 0.05)
+            await pause(0.05)
         }
         nonjaLog.info("通知センターに束が見つかりませんでした")
         return false
+    }
+
+    /// 主スレッドを止めずに待つ。取り消されても待つのをやめるだけで、続きはそのまま進める
+    private static func pause(_ seconds: Double) async {
+        try? await Task.sleep(for: .seconds(seconds))
     }
 
     /// 束を消す操作。束ねられているときは「すべて消去」、1件だけのときは「閉じる」になる。
