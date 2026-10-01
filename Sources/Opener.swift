@@ -138,8 +138,21 @@ enum Opener {
         guard AXUIElementCopyActionNames(element, &names) == .success,
             let list = names as? [String]
         else { return nil }
-        return list.first { $0.contains("すべて消去") }
-            ?? list.first { $0.contains("閉じる") || $0.lowercased().contains("close") }
+        return clearActionName(in: list)
+    }
+
+    /// 消す操作の名前を選ぶ。
+    ///
+    /// **この操作には言語によらない識別子がない。** 通知センターが足している独自の操作で、
+    /// 名前は `Name:すべて消去\nTarget:…` のように表示言語の文字列そのものになる。
+    /// だから日本語と英語の両方を並べて当てる。ほかの言語の macOS では見つからず、
+    /// 「すべて既読」は Nonja の中だけで既読になる（通知センター側には残る）。
+    /// 束ねられているときは「閉じる」より「すべて消去」を先に選ぶ
+    nonisolated static func clearActionName(in names: [String]) -> String? {
+        func has(_ words: [String]) -> String? {
+            names.first { name in words.contains { name.localizedCaseInsensitiveContains($0) } }
+        }
+        return has(["すべて消去", "Clear All"]) ?? has(["閉じる", "Close"])
     }
 
     private static func find(uuid: String, in root: AXUIElement, depth: Int = 0) -> AXUIElement? {
@@ -162,11 +175,7 @@ enum Opener {
 
     /// メニューバーの時計を押すと通知センターが開く。専用の API は公開されていない
     private static func openNotificationCenter() {
-        run(
-            """
-            tell application "System Events" to tell process "ControlCenter" \
-            to click (first menu bar item of menu bar 1 whose description is "時計")
-            """)
+        run(clickClockScript)
     }
 
     /// 閉じるのも時計を押す。
@@ -174,12 +183,26 @@ enum Opener {
     /// **Escape では閉じない。** 押した直後は前面が元アプリへ移っているので、
     /// Escape はそちらへ流れる。時計はどこが前面でも同じように効く
     private static func closeNotificationCenter() {
-        run(
-            """
-            tell application "System Events" to tell process "ControlCenter" \
-            to click (first menu bar item of menu bar 1 whose description is "時計")
-            """)
+        run(clickClockScript)
     }
+
+    /// 時計は **AXIdentifier（`com.apple.menuextra.clock`）で探す。** 説明文の「時計」は
+    /// 表示言語で変わり、英語の macOS では "Clock" になって見つからない。
+    /// 識別子を持たない項目もあり、`whose` で絞ると最初のそれで失敗するので一つずつ当てる。
+    /// 識別子で見つからない版に備えて、日本語と英語の説明文でも探す
+    private static let clickClockScript = """
+        tell application "System Events" to tell process "ControlCenter"
+            repeat with m in (every menu bar item of menu bar 1)
+                try
+                    if value of attribute "AXIdentifier" of m is "com.apple.menuextra.clock" then
+                        click m
+                        return
+                    end if
+                end try
+            end repeat
+            click (first menu bar item of menu bar 1 whose description is "時計" or description is "Clock")
+        end tell
+        """
 
     private static func run(_ source: String) {
         guard let script = NSAppleScript(source: source) else { return }

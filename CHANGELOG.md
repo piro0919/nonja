@@ -14,6 +14,10 @@ Versions up to v0.2.4 predate this file; their history is in `git log`.
 
 ### Fixed
 
+- Clicking a notification now jumps to it on macOS in any language, not only Japanese. Mark All
+  as Read also clears the app in Notification Center on English macOS; in other languages it
+  still marks it as read in Nonja only.
+- The permission prompt for controlling System Events is now in English.
 - Clicking a notification or clearing an app no longer freezes Nonja while Notification Center
   opens.
 - When the notification database is missing, Nonja now names the path it checked, the verified

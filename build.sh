@@ -118,8 +118,10 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>SUEnableAutomaticChecks</key><false/>
   <key>SUAutomaticallyUpdate</key><false/>
 
+  <!-- 許可を求める画面の文言。表示文字列と同じく既定は英語。.lproj を持たないので
+       （Sources/Localization.swift 冒頭）日本語の環境でもこの英語が出る -->
   <key>NSAppleEventsUsageDescription</key>
-  <string>通知をクリックしたときに、元のアプリへ移動するため通知センターを操作します。</string>
+  <string>Nonja opens Notification Center so that clicking a notification takes you to the app that sent it.</string>
 </dict>
 </plist>
 PLIST

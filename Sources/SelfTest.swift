@@ -107,6 +107,16 @@ enum SelfTest {
             check(result.inbox.map(\.uuid) == ["F"], "アプリ単位の行が既定より優先される")
         }
 
+        // 通知センターの消す操作は、日本語でも英語でも見つかる。束なら「すべて消去」を先に選ぶ
+        do {
+            let ja = ["AXPress", "Name:閉じる\nTarget:0x0", "Name:すべて消去\nTarget:0x0"]
+            let en = ["AXPress", "Name:Close\nTarget:0x0", "Name:Clear All\nTarget:0x0"]
+            check(Opener.clearActionName(in: ja) == ja[2], "日本語の束では「すべて消去」を選ぶ")
+            check(Opener.clearActionName(in: en) == en[2], "英語の束では Clear All を選ぶ")
+            check(Opener.clearActionName(in: Array(en.prefix(2))) == en[1], "1件だけなら Close を選ぶ")
+            check(Opener.clearActionName(in: ["AXPress", "Name:Show Details"]) == nil, "消す操作がなければ何も選ばない")
+        }
+
         print(failures == 0 ? "全部通りました" : "\(failures) 件こけました")
         return failures == 0 ? 0 : 1
     }
