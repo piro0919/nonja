@@ -116,6 +116,13 @@ documented. The path most articles point at is already dead on current macOS.
 This one works today and may stop working after any system update. When it does,
 Nonja says so on screen rather than sitting there looking empty.
 
+The location, `~/Library/Group Containers/group.com.apple.usernoted/db2/db`, has been
+verified on **macOS 26** only (26.5.2 and 26.6.2). Nonja installs on macOS 14 and 15,
+but whether the database sits in the same place there has not been checked, and Nonja
+does not guess other paths. If it reports that the database was not found, the message
+names the path it checked; please
+[open an issue](https://github.com/piro0919/nonja/issues) with your macOS version.
+
 `SPEC.md` holds the reasoning behind every decision here, in Japanese, including
 the routes that were tried and abandoned.
 

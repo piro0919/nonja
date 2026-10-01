@@ -18,7 +18,12 @@ enum Store {
             case .noPermission:
                 return L.noPermission
             case .notFound:
-                return L.notFound
+                let v = ProcessInfo.processInfo.operatingSystemVersion
+                return L.notFound(
+                    path: (Paths.notificationDB.path as NSString).abbreviatingWithTildeInPath,
+                    verified: Paths.verifiedOS,
+                    current: "macOS \(v.majorVersion).\(v.minorVersion).\(v.patchVersion)",
+                    issues: Paths.issues)
             case .openFailed(let m):
                 return L.openFailed(m)
             case .queryFailed(let m):

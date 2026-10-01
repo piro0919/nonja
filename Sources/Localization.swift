@@ -48,10 +48,17 @@ enum L {
             "通知センターのデータベースを読む権限がありません。フルディスクアクセスを許可してください。",
             "Nonja cannot read the Notification Center database. Allow Full Disk Access for Nonja.")
     }
-    static var notFound: String {
+    /// どこを探したか、どの版で確かめたか、次に何をすればよいかまで書く。
+    /// 場所は Apple が公開していないので、確かめていない版では外れていても不思議はない
+    static func notFound(path: String, verified: String, current: String, issues: String) -> String {
         t(
-            "通知センターのデータベースが見つかりません。OS の更新で場所が変わった可能性があります。",
-            "The Notification Center database was not found. A macOS update may have moved it.")
+            "通知センターのデータベースが見つかりません。探した場所: \(path)\n"
+                + "この場所を確かめたのは \(verified) だけです（この Mac は \(current)）。"
+                + "Nonja の更新を確認し、直らなければ macOS のバージョンを添えて \(issues) へ知らせてください。",
+            "The Notification Center database was not found at \(path).\n"
+                + "That location has only been verified on \(verified); this Mac runs \(current). "
+                + "Check for a Nonja update, and if that does not help, report it with your macOS version at \(issues)."
+        )
     }
     static func openFailed(_ reason: String) -> String {
         t("データベースを開けませんでした: \(reason)", "Could not open the database: \(reason)")

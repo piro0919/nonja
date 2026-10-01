@@ -143,7 +143,8 @@ final class ListWindowController: NSWindowController {
         status.font = .systemFont(ofSize: 11)
         status.textColor = .secondaryLabelColor
         status.lineBreakMode = .byWordWrapping
-        status.maximumNumberOfLines = 3
+        // 見つからないときの案内は場所と知らせ先まで書くので長い。三行では切れる
+        status.maximumNumberOfLines = 6
         status.translatesAutoresizingMaskIntoConstraints = false
 
         let column = NSTableColumn(identifier: .init("main"))
