@@ -12,12 +12,21 @@ TARGET="arm64-apple-macos14.0"
 # 証明書がなければ暫定署名に落とすが、そのときは許可を入れ直す必要がある
 SIGN_IDENTITY="${NONJA_SIGN_IDENTITY:-Okigae Dev}"
 if ! security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
+  # release.sh はこれを立てて呼ぶ。暫定署名のまま配ると、更新のたびに利用者の許可が外れる
+  if [ "${NONJA_REQUIRE_IDENTITY:-0}" = "1" ]; then
+    echo "エラー: 証明書「${SIGN_IDENTITY}」が見つかりません。暫定署名のままでは配れません" >&2
+    exit 1
+  fi
   echo "警告: 証明書「${SIGN_IDENTITY}」が見つかりません。暫定署名にします（許可が外れます）" >&2
   SIGN_IDENTITY="-"
 fi
 # リリース時は release.sh から渡される。手元のビルドでは 0.0.0 のままでよい
 VERSION="${NONJA_VERSION:-0.0.0}"
 SPARKLE_VERSION="2.9.5"
+# 取ってきた書庫を確かめる値。版を上げたら一緒に差し替える。
+# GitHub Releases の asset に載っている digest と同じもの:
+#   gh api repos/sparkle-project/Sparkle/releases/tags/<版> --jq '.assets[] | "\(.name) \(.digest)"'
+SPARKLE_SHA256="015336b601493e05c237964954bff6191370003d94edefe663724c88840d73cc"
 
 # 自動更新に Sparkle を使う。framework は大きいのでリポジトリに置かず、
 # 無ければ取ってくる（Vendor/ は git の管理外）
@@ -25,8 +34,16 @@ if [ ! -d "Vendor/Sparkle.framework" ]; then
   echo "Sparkle $SPARKLE_VERSION を取得します…"
   mkdir -p Vendor
   TMP="$(mktemp -d)"
-  curl -sL -o "$TMP/sparkle.tar.xz" \
+  curl -fsSL -o "$TMP/sparkle.tar.xz" \
     "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+  # 中身を検めずに同梱すると、差し替えられた framework がそのまま配布物に入る
+  if ! echo "${SPARKLE_SHA256}  $TMP/sparkle.tar.xz" | shasum -a 256 -c - >/dev/null; then
+    echo "エラー: Sparkle ${SPARKLE_VERSION} の SHA-256 が一致しません。" >&2
+    echo "        期待値: ${SPARKLE_SHA256}" >&2
+    echo "        実際:   $(shasum -a 256 "$TMP/sparkle.tar.xz" | cut -d' ' -f1)" >&2
+    rm -rf "$TMP"
+    exit 1
+  fi
   tar xf "$TMP/sparkle.tar.xz" -C "$TMP"
   cp -R "$TMP/Sparkle.framework" Vendor/
   cp -R "$TMP/bin" Vendor/
